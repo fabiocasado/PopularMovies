@@ -3,6 +3,7 @@ package com.fcasado.popularmovies;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.library21.custom.SwipeRefreshLayoutBottom;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
@@ -32,6 +33,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private GridView mGridView;
     private MovieAdapter mMovieAdapter;
 
+    private SwipeRefreshLayoutBottom mSwipeRefreshLayoutBottom;
+
     public MovieFragment() {
     }
 
@@ -42,9 +45,29 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        ViewGroup rootLayout = (ViewGroup) rootView.findViewById(R.id.root_layout);
 
-        // Update gridview's reference and adapter
-        mGridView = (GridView) rootView.findViewById(R.id.gridview_movie);
+        mSwipeRefreshLayoutBottom = new SwipeRefreshLayoutBottom(getActivity());
+        mSwipeRefreshLayoutBottom
+                .setOnRefreshListener(new SwipeRefreshLayoutBottom.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        System.out.println("TEST REFRESH");
+                        mSwipeRefreshLayoutBottom.setRefreshing(true);
+                        mFetchMovieFragment.fetchMovieData(
+                                MovieAPI.MOVIE_POPULARITY.concat(".desc"),
+                                mMovieAdapter.getCount() / 20 + 1);
+                    }
+                });
+        mSwipeRefreshLayoutBottom.setColorSchemeResources(R.color.colorPrimary,
+                R.color.colorAccent);
+
+        mGridView = new GridView(getActivity());
+        mGridView.setNumColumns(getResources().getInteger(R.integer.grid_columns));
+        mSwipeRefreshLayoutBottom.addView(mGridView);
+
+        rootLayout.addView(mSwipeRefreshLayoutBottom);
+
         mGridView.setAdapter(mMovieAdapter);
 
         return rootView;
@@ -82,6 +105,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
+        mSwipeRefreshLayoutBottom.setRefreshing(false);
     }
 
     @Override

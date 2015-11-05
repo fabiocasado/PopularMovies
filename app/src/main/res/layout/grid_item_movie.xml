@@ -2,13 +2,15 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
-             android:minHeight="?android:attr/listPreferredItemHeight">
+             android:minHeight="?android:attr/listPreferredItemHeight"
+             android:padding="10dp"
+             android:clipToPadding="false">
 
-    <ImageView
+    <com.fcasado.popularmovies.views.SquareImageView
         android:id="@+id/grid_item_poster_imageview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scaleType="fitCenter"
-        android:adjustViewBounds="true"/>
+        android:scaleType="centerCrop"
+        android:background="@drawable/drop_shadow"/>
 
 </FrameLayout>

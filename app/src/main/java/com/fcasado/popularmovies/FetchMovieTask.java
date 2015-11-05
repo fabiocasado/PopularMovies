@@ -26,11 +26,17 @@ import java.util.Vector;
  */
 public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
     private static final String LOG_TAG = FetchMovieTask.class.getSimpleName();
-
+    private OnMovieDataFetchFinished mCallback;
     private Context mContext;
+    private String mSortValue;
+    private int mPageValue;
 
-    public FetchMovieTask(Context context) {
+    public FetchMovieTask(Context context, String sortValue, int pageValue,
+            OnMovieDataFetchFinished callback) {
         mContext = context;
+        mSortValue = sortValue;
+        mPageValue = pageValue;
+        mCallback = callback;
     }
 
     @Override
@@ -45,8 +51,8 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             // Construct the URL for the MovieDbApi query
 
             Uri builtUri = Uri.parse(MovieAPI.buildEndpointUri(MovieAPI.DISCOVER_MOVIE)).buildUpon()
-                    .appendQueryParameter(MovieAPI.SORT_BY_PARAM,
-                            MovieAPI.MOVIE_POPULARITY.concat(".desc"))
+                    .appendQueryParameter(MovieAPI.SORT_BY_PARAM, mSortValue)
+                    .appendQueryParameter(MovieAPI.PAGE_PARAM, String.valueOf(mPageValue))
                     .appendQueryParameter(MovieAPI.API_KEY_PARAM, BuildConfig.MOVIE_DB_API_KEY)
                     .build();
 
@@ -121,6 +127,8 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
                 String releaseDate = movie.optString(MovieAPI.MOVIE_RELEASE_dATE);
                 double popularity = movie.optDouble(MovieAPI.MOVIE_POPULARITY, 0);
 
+                System.out.println(title + " - " + popularity);
+
                 ContentValues movieValues = new ContentValues();
 
                 movieValues.put(MovieContract.MovieEntry._ID, id);
@@ -148,5 +156,16 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+
+        mCallback.onMovieDataFetchFinished();
+    }
+
+    public interface OnMovieDataFetchFinished {
+        public void onMovieDataFetchFinished();
     }
 }

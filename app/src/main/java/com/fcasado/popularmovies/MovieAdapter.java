@@ -36,8 +36,9 @@ public class MovieAdapter extends CursorAdapter {
 
         String portraitPath = cursor.getString(MovieFragment.COL_POSTER_PATH);
         if (portraitPath != null && portraitPath.length() > 0) {
-            portraitPath = "http://image.tmdb.org/t/p/w342/".concat(portraitPath);
-            Picasso.with(context).load(portraitPath).into(viewHolder.posterView);
+            portraitPath = "http://image.tmdb.org/t/p/w185/".concat(portraitPath);
+            Picasso.with(context).load(portraitPath).placeholder(R.mipmap.ic_launcher).noFade()
+                    .into(viewHolder.posterView);
         }
     }
 
