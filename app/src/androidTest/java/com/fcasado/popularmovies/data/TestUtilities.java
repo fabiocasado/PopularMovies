@@ -37,7 +37,7 @@ public class TestUtilities extends AndroidTestCase {
 
     static ContentValues createMovieValues() {
         ContentValues movieValues = new ContentValues();
-        movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, "111111");
+        movieValues.put(MovieContract.MovieEntry._ID, "111111");
         movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "Back to the Future");
         movieValues.put(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, "Back to the Future");
         movieValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW,

@@ -24,7 +24,7 @@ import java.util.Vector;
 /**
  * Created by fcasado on 04/11/2015.
  */
-public class FetchMovieTask extends AsyncTask<String, Void, Void> {
+public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
     private static final String LOG_TAG = FetchMovieTask.class.getSimpleName();
 
     private Context mContext;
@@ -34,12 +34,7 @@ public class FetchMovieTask extends AsyncTask<String, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(String... params) {
-        if (params.length == 0)
-            return null;
-
-        String movieQuery = params[0];
-
+    protected Void doInBackground(Void... params) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
@@ -50,6 +45,8 @@ public class FetchMovieTask extends AsyncTask<String, Void, Void> {
             // Construct the URL for the MovieDbApi query
 
             Uri builtUri = Uri.parse(MovieAPI.buildEndpointUri(MovieAPI.DISCOVER_MOVIE)).buildUpon()
+                    .appendQueryParameter(MovieAPI.SORT_BY_PARAM,
+                            MovieAPI.MOVIE_POPULARITY.concat(".desc"))
                     .appendQueryParameter(MovieAPI.API_KEY_PARAM, BuildConfig.MOVIE_DB_API_KEY)
                     .build();
 
@@ -103,8 +100,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, Void> {
     }
 
     private void getMovieDataFromJson(String movieJsonStr) {
-        System.out.println(movieJsonStr);
-
         try {
             JSONObject resultsObject = new JSONObject(movieJsonStr);
             JSONArray movieArray = resultsObject.optJSONArray(MovieAPI.DISCOVER_MOVIE_RESULTS);
@@ -124,16 +119,18 @@ public class FetchMovieTask extends AsyncTask<String, Void, Void> {
                 String posterPath = movie.optString(MovieAPI.MOVIE_POSTER_PATH);
                 double userRating = movie.optDouble(MovieAPI.MOVIE_USER_RATING, 0);
                 String releaseDate = movie.optString(MovieAPI.MOVIE_RELEASE_dATE);
+                double popularity = movie.optDouble(MovieAPI.MOVIE_POPULARITY, 0);
 
                 ContentValues movieValues = new ContentValues();
 
-                movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, id);
+                movieValues.put(MovieContract.MovieEntry._ID, id);
                 movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, title);
                 movieValues.put(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, originalTitle);
                 movieValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, overview);
                 movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, posterPath);
                 movieValues.put(MovieContract.MovieEntry.COLUMN_USER_RATING, userRating);
                 movieValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, releaseDate);
+                movieValues.put(MovieContract.MovieEntry.COLUMN_POPULARITY, popularity);
 
                 cVVector.add(movieValues);
             }

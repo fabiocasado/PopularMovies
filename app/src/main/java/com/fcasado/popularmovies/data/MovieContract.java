@@ -33,9 +33,6 @@ public class MovieContract {
         // Table name
         public static final String TABLE_NAME = "movie";
 
-        // Movie id as in TheMovieDB.org in String format
-        public static final String COLUMN_MOVIE_ID = "movieId";
-
         // Movie title string
         public static final String COLUMN_TITLE = "title";
 
@@ -53,6 +50,9 @@ public class MovieContract {
 
         // Movie release date
         public static final String COLUMN_RELEASE_DATE = "releaseDate";
+
+        // Movie popularity
+        public static final String COLUMN_POPULARITY = "popularity";
 
         public static Uri buildMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);

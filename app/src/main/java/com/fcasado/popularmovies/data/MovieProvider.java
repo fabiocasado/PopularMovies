@@ -75,7 +75,8 @@ public class MovieProvider extends ContentProvider {
 
         switch (match) {
             case MOVIE: {
-                long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, values);
+                long _id = db.insertWithOnConflict(MovieContract.MovieEntry.TABLE_NAME, null,
+                        values, SQLiteDatabase.CONFLICT_REPLACE);
                 if (_id > 0)
                     returnUri = MovieContract.MovieEntry.buildMovieUri(_id);
                 else
@@ -100,7 +101,8 @@ public class MovieProvider extends ContentProvider {
                 int returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
+                        long _id = db.insertWithOnConflict(MovieContract.MovieEntry.TABLE_NAME,
+                                null, value, SQLiteDatabase.CONFLICT_REPLACE);
                         if (_id != -1) {
                             returnCount++;
                         }

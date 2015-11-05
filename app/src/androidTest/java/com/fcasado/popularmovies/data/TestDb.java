@@ -76,13 +76,13 @@ public class TestDb extends AndroidTestCase {
         // Build a HashSet of all of the column names we want to look for
         final HashSet<String> movieColumnHashSet = new HashSet<String>();
         movieColumnHashSet.add(MovieContract.MovieEntry._ID);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_MOVIE_ID);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_TITLE);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_OVERVIEW);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_POSTER_PATH);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_RELEASE_DATE);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_USER_RATING);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_POPULARITY);
 
         int columnTitleIndex = c.getColumnIndex("name");
         do {
