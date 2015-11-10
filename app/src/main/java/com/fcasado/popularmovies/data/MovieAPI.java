@@ -1,5 +1,5 @@
 
-package com.fcasado.popularmovies;
+package com.fcasado.popularmovies.data;
 
 /**
  * Created by fcasado on 04/11/2015.
@@ -20,6 +20,13 @@ public class MovieAPI {
     public static final String MOVIE_RELEASE_dATE = "release_date";
     public static final String MOVIE_POPULARITY = "popularity";
 
+    /**
+     * Right now we are only using one endpoint, but if its easy to prepare for future changes then
+     * we should.
+     * 
+     * @param endpoint
+     * @return String pointing to the web address of the endpoint
+     */
     public static String buildEndpointUri(String endpoint) {
         return BASE_URI.concat(endpoint);
     }

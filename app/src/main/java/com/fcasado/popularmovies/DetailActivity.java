@@ -4,17 +4,17 @@ package com.fcasado.popularmovies;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.utils.UpBugFixAppCompatActivity;
 import com.squareup.picasso.Picasso;
 
 /**
  * Created by fcasado on 07/11/2015.
  */
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends UpBugFixAppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +40,8 @@ public class DetailActivity extends AppCompatActivity {
                 titleView.setText(cursor
                         .getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE)));
             }
+
+            cursor.close();
         }
     }
 }

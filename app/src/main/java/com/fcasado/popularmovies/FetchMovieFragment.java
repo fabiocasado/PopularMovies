@@ -22,7 +22,7 @@ public class FetchMovieFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (mIsTaskFinished == false && mTask == null) {
+        if (!mIsTaskFinished && mTask == null) {
             mTask = new FetchMovieTask(getActivity(), this);
             mTask.execute();
         }

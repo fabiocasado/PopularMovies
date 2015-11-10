@@ -14,15 +14,15 @@ import android.net.Uri;
  * Created by fcasado on 04/11/2015.
  */
 public class MovieProvider extends ContentProvider {
-    static final int MOVIE = 100;
-    static final int MOVIE_WITH_ID = 101;
+    private static final int MOVIE = 100;
+    private static final int MOVIE_WITH_ID = 101;
 
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MovieDbHelper mOpenHelper;
 
     // We only have one URI type at the moment, but this may change in the future
-    static UriMatcher buildUriMatcher() {
+    private static UriMatcher buildUriMatcher() {
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = MovieContract.CONTENT_AUTHORITY;
 

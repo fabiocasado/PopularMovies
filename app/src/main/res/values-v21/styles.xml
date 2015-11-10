@@ -5,4 +5,5 @@
         <item name="android:windowExitTransition">@transition/grid_exit</item>
         <item name="android:windowContentTransitions">true</item>
     </style>
+
 </resources>

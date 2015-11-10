@@ -1,9 +1,11 @@
 
 package com.fcasado.popularmovies;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
@@ -34,8 +36,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private FetchMovieFragment mFetchMovieFragment;
 
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private GridView mGridView;
     private MovieAdapter mMovieAdapter;
+    private String mSortByValue;
 
     public MovieFragment() {
     }
@@ -52,14 +54,14 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                refreshContent();
+                mSwipeRefreshLayout.setRefreshing(true);
+                mFetchMovieFragment.refreshContent();
             }
         });
-        // mSwipeRefreshLayout.setRefreshing(true);
 
-        mGridView = (GridView) rootView.findViewById(R.id.gridview);
-        mGridView.setAdapter(mMovieAdapter);
-        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
+        gridView.setAdapter(mMovieAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
@@ -71,12 +73,31 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             }
         });
 
+        SharedPreferences preferences = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        mSortByValue = preferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_sort_default));
+
         return rootView;
     }
 
-    public void refreshContent() {
-        mSwipeRefreshLayout.setRefreshing(true);
-        mFetchMovieFragment.refreshContent();
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // When we are presenting this fragment again, the Sort By setting may have change, so we do
+        // a simple check of our current value and the one stored in the app's preference. If values
+        // are different, we update our own and restart the loader. This way we keep the logic for
+        // restarting the loader or not in the fragment, and don't depend on external
+        // activities/fragments/others to tell us to update our sort value and reload
+        SharedPreferences preferences = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        String prefSortBy = preferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.sort_most_popular));
+        if (mSortByValue != prefSortBy) {
+            mSortByValue = prefSortBy;
+            getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+        }
     }
 
     @Override
@@ -104,6 +125,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         // fragment only uses one loader, so we don't care about checking the id.
 
         String sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC";
+        if (mSortByValue.equalsIgnoreCase(getString(R.string.sort_highest_rated))) {
+            sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC";
+        }
+
         return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI, MOVIE_COLUMNS,
                 null, null, sortOrder);
     }
@@ -127,6 +152,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
          * DetailFragmentCallback for when an item has been selected. It also allows the setting of
          * a sharedView to use in activity transitions (should be poster view)
          */
-        public void onMovieItemSelected(Uri contentUri, View sharedView);
+        void onMovieItemSelected(Uri contentUri, View sharedView);
     }
 }

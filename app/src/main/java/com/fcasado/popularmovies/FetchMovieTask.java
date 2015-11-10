@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.fcasado.popularmovies.data.MovieAPI;
 import com.fcasado.popularmovies.data.MovieContract;
 
 import org.json.JSONArray;
@@ -166,6 +167,6 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
     }
 
     public interface OnMovieDataFetchFinished {
-        public void onMovieDataFetchFinished();
+        void onMovieDataFetchFinished();
     }
 }

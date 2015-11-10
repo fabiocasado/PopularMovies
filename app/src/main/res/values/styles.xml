@@ -8,8 +8,9 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!-- App theme -->
     <style name="PopularMoviesTheme" parent="AppTheme">
-
     </style>
+
 
 </resources>

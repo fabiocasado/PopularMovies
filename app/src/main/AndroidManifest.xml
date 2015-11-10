@@ -22,12 +22,22 @@
         <activity
             android:name=".DetailActivity"
             android:parentActivityName=".MainActivity">
-
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.fcasado.popularmovies.MainActivity"/>
+        </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:parentActivityName=".MainActivity">/>
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.fcasado.popularmovies.MainActivity"/>
         </activity>
 
         <provider
             android:name=".data.MovieProvider"
-            android:authorities="com.fcasado.popularmovies"/>
+            android:authorities="com.fcasado.popularmovies"
+            android:exported="false"/>
     </application>
 
 </manifest>
