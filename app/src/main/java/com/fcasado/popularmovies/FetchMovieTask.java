@@ -36,6 +36,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected Void doInBackground(Void... params) {
+        Log.d(LOG_TAG, "Starting work");
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
@@ -135,6 +136,12 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
 
                 cVVector.add(movieValues);
             }
+
+            // Before insertion, we delete old records, since we may end up with old movies which
+            // data is never updated
+            int deleted = mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI,
+                    null, null);
+            Log.d(LOG_TAG, "Deleting old data before insert. " + deleted + " Inserted");
 
             int inserted = 0;
             // add to database

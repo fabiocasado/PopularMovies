@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     };
     private static final int MOVIE_LOADER_ID = 100;
     private FetchMovieFragment mFetchMovieFragment;
+
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private GridView mGridView;
     private MovieAdapter mMovieAdapter;
 
@@ -44,7 +47,17 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        mGridView = (GridView) rootView.findViewById(R.id.main_gridview);
+
+        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshContent();
+            }
+        });
+        // mSwipeRefreshLayout.setRefreshing(true);
+
+        mGridView = (GridView) rootView.findViewById(R.id.gridview);
         mGridView.setAdapter(mMovieAdapter);
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -59,6 +72,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         });
 
         return rootView;
+    }
+
+    public void refreshContent() {
+        mSwipeRefreshLayout.setRefreshing(true);
+        mFetchMovieFragment.refreshContent();
     }
 
     @Override
@@ -93,6 +111,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
