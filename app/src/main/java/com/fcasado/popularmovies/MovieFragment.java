@@ -68,7 +68,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 if (cursor != null) {
                     ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
                             MovieContract.MovieEntry.buildMovieUri(id),
-                            view.findViewById(R.id.grid_item_poster_imageview));
+                            view.findViewById(R.id.poster_imageview));
                 }
             }
         });

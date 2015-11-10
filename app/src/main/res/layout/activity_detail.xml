@@ -1,32 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="horizontal">
-
-    <com.fcasado.popularmovies.views.SquareImageView
-        android:id="@+id/grid_item_poster_imageview"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.5"
-        android:background="@drawable/drop_shadow"
-        android:scaleType="centerCrop"
-        android:transitionName="@string/transition_image"
-        tools:ignore="UnusedAttribute"/>
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="0.5"
-        android:orientation="vertical"
-        android:padding="8dp">
-
-        <TextView
-            android:id="@+id/title_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:textAppearanceLarge"/>
-    </LinearLayout>
-
-</LinearLayout>
+<FrameLayout
+    android:id="@+id/movie_detail_container"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.fcasado.popularmovies.DetailActivity"/>

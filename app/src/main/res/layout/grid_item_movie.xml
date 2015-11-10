@@ -8,7 +8,7 @@
              android:clipToPadding="false">
 
     <com.fcasado.popularmovies.views.SquareImageView
-        android:id="@+id/grid_item_poster_imageview"
+        android:id="@+id/poster_imageview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scaleType="centerCrop"

@@ -50,7 +50,7 @@ public class MovieAdapter extends CursorAdapter {
         public final ImageView posterView;
 
         public ViewHolder(View view) {
-            posterView = (ImageView) view.findViewById(R.id.grid_item_poster_imageview);
+            posterView = (ImageView) view.findViewById(R.id.poster_imageview);
         }
     }
 }
