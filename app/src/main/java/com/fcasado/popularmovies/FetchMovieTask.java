@@ -28,14 +28,9 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
     private static final String LOG_TAG = FetchMovieTask.class.getSimpleName();
     private OnMovieDataFetchFinished mCallback;
     private Context mContext;
-    private String mSortValue;
-    private int mPageValue;
 
-    public FetchMovieTask(Context context, String sortValue, int pageValue,
-            OnMovieDataFetchFinished callback) {
+    public FetchMovieTask(Context context, OnMovieDataFetchFinished callback) {
         mContext = context;
-        mSortValue = sortValue;
-        mPageValue = pageValue;
         mCallback = callback;
     }
 
@@ -51,8 +46,6 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             // Construct the URL for the MovieDbApi query
 
             Uri builtUri = Uri.parse(MovieAPI.buildEndpointUri(MovieAPI.DISCOVER_MOVIE)).buildUpon()
-                    .appendQueryParameter(MovieAPI.SORT_BY_PARAM, mSortValue)
-                    .appendQueryParameter(MovieAPI.PAGE_PARAM, String.valueOf(mPageValue))
                     .appendQueryParameter(MovieAPI.API_KEY_PARAM, BuildConfig.MOVIE_DB_API_KEY)
                     .build();
 
@@ -88,7 +81,8 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             getMovieDataFromJson(movieJsonStr);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
-            // If the code didn't successfully get the movie data, there's no point in attempting
+            // If the code didn't successfully get the movie data, there's no point in
+            // attempting
             // to parse it.
         } finally {
             if (urlConnection != null) {
@@ -102,6 +96,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
                 }
             }
         }
+
         return null;
     }
 
@@ -126,8 +121,6 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
                 double userRating = movie.optDouble(MovieAPI.MOVIE_USER_RATING, 0);
                 String releaseDate = movie.optString(MovieAPI.MOVIE_RELEASE_dATE);
                 double popularity = movie.optDouble(MovieAPI.MOVIE_POPULARITY, 0);
-
-                System.out.println(title + " - " + popularity);
 
                 ContentValues movieValues = new ContentValues();
 

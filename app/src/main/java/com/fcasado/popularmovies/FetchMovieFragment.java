@@ -3,7 +3,6 @@ package com.fcasado.popularmovies;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 
 /**
  * Created by fcasado on 05/11/2015.
@@ -22,13 +21,8 @@ public class FetchMovieFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-    }
-
-    public void fetchMovieData(String sortValue, int pageValue) {
-        Log.d(LOG_TAG, "fetchMovieData: " + sortValue + ", " + pageValue);
         if (mTask == null) {
-            mTask = new FetchMovieTask(getActivity(), sortValue, pageValue, this);
+            mTask = new FetchMovieTask(getActivity(), this);
             mTask.execute();
         }
     }

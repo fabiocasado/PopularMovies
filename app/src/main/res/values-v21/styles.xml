@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="PopularMoviesTheme" parent="AppTheme">
+        <item name="android:windowExitTransition">@transition/grid_exit</item>
+        <item name="android:windowContentTransitions">true</item>
+    </style>
+</resources>

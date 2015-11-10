@@ -3,6 +3,7 @@ package com.fcasado.popularmovies.data;
 
 import android.annotation.TargetApi;
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -14,6 +15,8 @@ import android.net.Uri;
  */
 public class MovieProvider extends ContentProvider {
     static final int MOVIE = 100;
+    static final int MOVIE_WITH_ID = 101;
+
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MovieDbHelper mOpenHelper;
@@ -25,6 +28,7 @@ public class MovieProvider extends ContentProvider {
 
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, MovieContract.PATH_MOVIE, MOVIE);
+        matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_WITH_ID);
         return matcher;
     }
 
@@ -40,6 +44,8 @@ public class MovieProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
 
         switch (match) {
+            case MOVIE_WITH_ID:
+                return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
             case MOVIE:
                 return MovieContract.MovieEntry.CONTENT_TYPE;
             default:
@@ -57,6 +63,16 @@ public class MovieProvider extends ContentProvider {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.MovieEntry.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
+                break;
+            }
+            case MOVIE_WITH_ID: {
+                long id = ContentUris.parseId(uri);
+
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        MovieContract.MovieEntry.TABLE_NAME, projection,
+                        MovieContract.MovieEntry._ID + " = ?", new String[] {
+                                String.valueOf(id)
+                }, null, null, null);
                 break;
             }
 

@@ -2,8 +2,8 @@
 package com.fcasado.popularmovies;
 
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.library21.custom.SwipeRefreshLayoutBottom;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
@@ -12,6 +12,7 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.fcasado.popularmovies.data.MovieContract;
@@ -33,8 +34,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private GridView mGridView;
     private MovieAdapter mMovieAdapter;
 
-    private SwipeRefreshLayoutBottom mSwipeRefreshLayoutBottom;
-
     public MovieFragment() {
     }
 
@@ -45,30 +44,19 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        ViewGroup rootLayout = (ViewGroup) rootView.findViewById(R.id.root_layout);
-
-        mSwipeRefreshLayoutBottom = new SwipeRefreshLayoutBottom(getActivity());
-        mSwipeRefreshLayoutBottom
-                .setOnRefreshListener(new SwipeRefreshLayoutBottom.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        System.out.println("TEST REFRESH");
-                        mSwipeRefreshLayoutBottom.setRefreshing(true);
-                        mFetchMovieFragment.fetchMovieData(
-                                MovieAPI.MOVIE_POPULARITY.concat(".desc"),
-                                mMovieAdapter.getCount() / 20 + 1);
-                    }
-                });
-        mSwipeRefreshLayoutBottom.setColorSchemeResources(R.color.colorPrimary,
-                R.color.colorAccent);
-
-        mGridView = new GridView(getActivity());
-        mGridView.setNumColumns(getResources().getInteger(R.integer.grid_columns));
-        mSwipeRefreshLayoutBottom.addView(mGridView);
-
-        rootLayout.addView(mSwipeRefreshLayoutBottom);
-
+        mGridView = (GridView) rootView.findViewById(R.id.main_gridview);
         mGridView.setAdapter(mMovieAdapter);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                if (cursor != null) {
+                    ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
+                            MovieContract.MovieEntry.buildMovieUri(id),
+                            view.findViewById(R.id.grid_item_poster_imageview));
+                }
+            }
+        });
 
         return rootView;
     }
@@ -105,11 +93,21 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
-        mSwipeRefreshLayoutBottom.setRefreshing(false);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mMovieAdapter.swapCursor(null);
+    }
+
+    /**
+     * A callback to notify activities of item selections.
+     */
+    public interface OnMovieItemSelected {
+        /**
+         * DetailFragmentCallback for when an item has been selected. It also allows the setting of
+         * a sharedView to use in activity transitions (should be poster view)
+         */
+        public void onMovieItemSelected(Uri contentUri, View sharedView);
     }
 }
