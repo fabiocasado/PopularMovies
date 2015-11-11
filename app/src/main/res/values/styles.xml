@@ -12,5 +12,11 @@
     <style name="PopularMoviesTheme" parent="AppTheme">
     </style>
 
+    <style name="CustomRatingBar" parent="Base.Widget.AppCompat.RatingBar">
+        <item name="android:progressDrawable">@drawable/custom_rating_bar</item>
+        <item name="android:minHeight">36dp</item>
+        <item name="android:maxHeight">36dp</item>
+    </style>
+
 
 </resources>

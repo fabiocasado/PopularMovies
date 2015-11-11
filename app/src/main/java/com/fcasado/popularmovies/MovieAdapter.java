@@ -24,7 +24,6 @@ public class MovieAdapter extends CursorAdapter {
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         View view = LayoutInflater.from(context).inflate(R.layout.grid_item_movie, parent, false);
 
-
         ViewHolder viewHolder = new ViewHolder(view);
         view.setTag(viewHolder);
 
@@ -37,7 +36,7 @@ public class MovieAdapter extends CursorAdapter {
 
         String portraitPath = cursor.getString(MovieFragment.COL_POSTER_PATH);
         if (portraitPath != null && portraitPath.length() > 0) {
-            portraitPath = "http://image.tmdb.org/t/p/w185/".concat(portraitPath);
+            portraitPath = context.getString(R.string.movie_poster_uri).concat(portraitPath);
             Picasso.with(context).load(portraitPath).placeholder(R.drawable.ic_poster)
                     .into(viewHolder.posterView);
         }

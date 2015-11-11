@@ -26,13 +26,15 @@ import com.fcasado.popularmovies.data.MovieContract;
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
     static final int COL_POSTER_PATH = 1;
-    private static final String TAG_FETCH_MOVIE = "tagFetchMovie";
 
     // On gridView we only need movie poster.
     private static final String[] MOVIE_COLUMNS = {
             MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_POSTER_PATH
     };
+
+    private static final String TAG_FETCH_MOVIE = "tagFetchMovie";
     private static final int MOVIE_LOADER_ID = 100;
+
     private FetchMovieFragment mFetchMovieFragment;
 
     private SwipeRefreshLayout mSwipeRefreshLayout;

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -65,8 +66,9 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(args);
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.movie_detail_container, fragment, TAG_MOVIE_DETAIL).commit();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+            ft.replace(R.id.movie_detail_container, fragment, TAG_MOVIE_DETAIL).commit();
         } else {
             Intent intent = new Intent(this, DetailActivity.class).setData(contentUri);
             ImageView imageView = (ImageView) sharedView;

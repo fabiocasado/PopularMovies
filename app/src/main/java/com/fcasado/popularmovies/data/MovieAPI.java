@@ -8,7 +8,6 @@ public class MovieAPI {
     public static final String BASE_URI = "http://api.themoviedb.org/3/";
     public static final String DISCOVER_MOVIE = "discover/movie?";
     public static final String API_KEY_PARAM = "api_key";
-
     public static final String DISCOVER_MOVIE_RESULTS = "results";
 
     public static final String MOVIE_ID = "id";
