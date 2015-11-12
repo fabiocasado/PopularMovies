@@ -3,8 +3,10 @@ package com.fcasado.popularmovies;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.fcasado.popularmovies.data.MovieAPI;
@@ -45,12 +47,31 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
         String movieJsonStr = null;
 
         try {
-            // Construct the URL for the MovieDbApi query
+            // Initialize uri builder
+            Uri.Builder uriBuilder = Uri.parse(MovieAPI.buildEndpointUri(MovieAPI.DISCOVER_MOVIE))
+                    .buildUpon();
 
-            Uri builtUri = Uri.parse(MovieAPI.buildEndpointUri(MovieAPI.DISCOVER_MOVIE)).buildUpon()
+            // Get the sorting criteria for the api call. By default we will use "Most Popular"
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+            String sortValue = preferences.getString(mContext.getString(R.string.pref_sort_key),
+                    mContext.getString(R.string.pref_sort_default));
+            if (sortValue.equalsIgnoreCase(mContext.getString(R.string.sort_most_popular))) {
+                uriBuilder.appendQueryParameter(MovieAPI.API_SORT_BY_PARAM,
+                        MovieAPI.MOVIE_POPULARITY + ".desc");
+            } else {
+                // In the case of sorting by vote_average, we will add an extra check to remove
+                // movies with high scores but very little votes
+                uriBuilder.appendQueryParameter(MovieAPI.API_SORT_BY_PARAM,
+                        MovieAPI.MOVIE_USER_RATING + ".desc");
+                uriBuilder.appendQueryParameter(MovieAPI.API_VOTE_COUNT_GTE_PARAM,
+                        MovieAPI.API_VOTE_COUNT_GTE_MINIMUM);
+            }
+
+            // Now append key and build URL for the MovieDbApi query
+            Uri builtUri = uriBuilder
                     .appendQueryParameter(MovieAPI.API_KEY_PARAM, BuildConfig.MOVIE_DB_API_KEY)
                     .build();
-
+            System.out.println("Uri: " + builtUri);
             URL url = new URL(builtUri.toString());
 
             // Create the request to MovieDbAPI, and open the connection
@@ -139,11 +160,10 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             }
 
             // Before insertion, we delete old records just in case, since we may end up with old
-            // movies which
-            // data is never updated
+            // movies which data is never updated
             int deleted = mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI,
                     null, null);
-            Log.d(LOG_TAG, "Deleting old data before insert. " + deleted + " Inserted");
+            Log.d(LOG_TAG, "Deleting old data before insert. " + deleted + " deleted");
 
             int inserted = 0;
             // add to database

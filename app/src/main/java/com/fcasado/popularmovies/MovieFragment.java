@@ -12,6 +12,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +29,7 @@ import com.fcasado.popularmovies.utils.Utilities;
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
     static final int COL_POSTER_PATH = 1;
-
+    private static final String LOG_TAG = MovieFragment.class.getSimpleName();
     // On gridView we only need movie poster.
     private static final String[] MOVIE_COLUMNS = {
             MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_POSTER_PATH
@@ -66,6 +67,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             public void onRefresh() {
                 if (!Utilities.isConnected(getActivity())) {
                     Utilities.presentOfflineDialog(getActivity());
+
+                    // If we were trying to do a new fetch, but we are offline, we still delete old
+                    // records,
+                    // since some images and data may not be there, thus creating a weird/bad UX
+                    int deleted = getActivity().getContentResolver()
+                            .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
+                    Log.d(LOG_TAG,
+                            "No internet connection on refresh. Deleting old data to avoid bad UX. "
+                                    + deleted + " deleted");
+
                     mSwipeRefreshLayout.setRefreshing(false);
                     return;
                 }
@@ -121,6 +132,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 getString(R.string.sort_most_popular));
         if (mSortByValue != prefSortBy) {
             mSortByValue = prefSortBy;
+            mFetchMovieFragment.refreshContent();
             getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
         }
     }

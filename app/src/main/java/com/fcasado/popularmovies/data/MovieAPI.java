@@ -7,7 +7,11 @@ package com.fcasado.popularmovies.data;
 public class MovieAPI {
     public static final String BASE_URI = "http://api.themoviedb.org/3/";
     public static final String DISCOVER_MOVIE = "discover/movie?";
+    public static final String API_SORT_BY_PARAM = "sort_by";
+    public static final String API_VOTE_COUNT_GTE_PARAM = "vote_count.gte";
     public static final String API_KEY_PARAM = "api_key";
+
+    public static final String API_VOTE_COUNT_GTE_MINIMUM = "100";
     public static final String DISCOVER_MOVIE_RESULTS = "results";
 
     public static final String MOVIE_ID = "id";
