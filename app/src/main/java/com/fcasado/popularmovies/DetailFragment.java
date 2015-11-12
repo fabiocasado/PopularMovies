@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.fcasado.popularmovies.data.MovieContract;
@@ -43,11 +42,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private Uri mUri;
 
+    private TextView mHelpView;
+    private View mMovieDetailView;
+
     private TextView mTitleView;
     private TextView mReleaseDateView;
+    private TextView mUserRatingView;
     private TextView mOverviewView;
     private ImageView mPosterView;
-    private RatingBar mUserRatingBar;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -60,11 +62,20 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
+        mHelpView = (TextView) rootView.findViewById(R.id.help_textview);
+        mMovieDetailView = rootView.findViewById(R.id.movie_data_linear_layout);
+
+        boolean shouldShowHelpView = getResources().getBoolean(R.bool.show_help_view);
+        if (shouldShowHelpView) {
+            mHelpView.setVisibility(View.VISIBLE);
+            mMovieDetailView.setVisibility(View.INVISIBLE);
+        }
+
         mTitleView = (TextView) rootView.findViewById(R.id.title_textview);
         mReleaseDateView = (TextView) rootView.findViewById(R.id.release_date_textview);
+        mUserRatingView = (TextView) rootView.findViewById(R.id.user_rating_textview);
         mOverviewView = (TextView) rootView.findViewById(R.id.overview_textview);
         mPosterView = (ImageView) rootView.findViewById(R.id.poster_imageview);
-        mUserRatingBar = (RatingBar) rootView.findViewById(R.id.user_rating_ratingbar);
 
         return rootView;
     }
@@ -88,11 +99,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (data != null && data.moveToFirst()) {
+            // Hide help and show movie data
+            if (mMovieDetailView.getVisibility() == View.INVISIBLE) {
+                mHelpView.setVisibility(View.GONE);
+                mMovieDetailView.setVisibility(View.VISIBLE);
+            }
+
             // Read weather condition ID from cursor
             mTitleView.setText(data.getString(COL_ORIGINAL_TITLE));
             mReleaseDateView.setText(String.format("(%s)", data.getString(COL_RELEASE_DATE)));
+            mUserRatingView.setText(String.format("%.1f/10", data.getFloat(COL_USER_RATING)));
             mOverviewView.setText(data.getString(COL_OVERVIEW));
-            mUserRatingBar.setRating(data.getFloat(COL_USER_RATING) / 2);
 
             String portraitPath = data.getString(COL_POSTER_PATH);
             if (portraitPath != null && portraitPath.length() > 0) {
