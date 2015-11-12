@@ -1,0 +1,14 @@
+<resources>
+    <string name="action_settings">Configuración</string>
+    <string name="movie_details">Detalles de la Película</string>
+
+    <string name="pref_sort_title">Ordenar por</string>
+    <string name="sort_label_most_popular">Más populares</string>
+    <string name="sort_label_highest_rated">Mejor valoradas</string>
+
+
+    <string name="no_connection_message">La conexión a internet parece no funcionar. Por favor, revise su conexión.</string>
+    <string name="no_connection_title">Sin conexión a Internet</string>
+
+
+</resources>

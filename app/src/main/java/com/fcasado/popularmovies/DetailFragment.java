@@ -114,8 +114,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             String portraitPath = data.getString(COL_POSTER_PATH);
             if (portraitPath != null && portraitPath.length() > 0) {
                 portraitPath = getString(R.string.movie_poster_uri).concat(portraitPath);
-                Picasso.with(getActivity()).load(portraitPath).noFade().noPlaceholder()
-                        .into(mPosterView);
+                Picasso.with(getActivity()).load(portraitPath)
+                        .placeholder(R.drawable.ic_poster_details).noFade().into(mPosterView);
             }
         }
     }

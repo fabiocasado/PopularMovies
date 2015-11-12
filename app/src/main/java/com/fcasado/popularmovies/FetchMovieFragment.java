@@ -3,6 +3,10 @@ package com.fcasado.popularmovies;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
+
+import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.utils.Utilities;
 
 /**
  * Created by fcasado on 05/11/2015.
@@ -17,14 +21,18 @@ public class FetchMovieFragment extends Fragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+
+        // When starting the app, we delete old content since we are going to fetch updated one
+        getActivity().getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
+        Log.d(LOG_TAG, "Content in DB deleted");
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
         if (!mIsTaskFinished && mTask == null) {
-            mTask = new FetchMovieTask(getActivity(), this);
-            mTask.execute();
+            refreshContent();
         }
     }
 
@@ -40,6 +48,11 @@ public class FetchMovieFragment extends Fragment
      * result in same data.
      */
     public void refreshContent() {
+        if (!Utilities.isConnected(getActivity())) {
+            Utilities.presentOfflineDialog(getActivity());
+            return;
+        }
+
         if (mTask == null) {
             mIsTaskFinished = false;
             mTask = new FetchMovieTask(getActivity(), this);

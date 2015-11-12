@@ -17,8 +17,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ListView;
 
 import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.utils.Utilities;
 
 /**
  * Created by fcasado on 05/11/2015.
@@ -33,12 +35,18 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     };
 
     private static final String TAG_FETCH_MOVIE = "tagFetchMovie";
+    private static final String SHOULD_SCROLL = "shouldScroll";
+    private static final String SELECTED_POSITION = "selectedPosition";
     private static final int MOVIE_LOADER_ID = 100;
 
     private FetchMovieFragment mFetchMovieFragment;
 
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private GridView mGridView;
     private MovieAdapter mMovieAdapter;
+
+    private boolean mShouldScrollToSelectedItem;
+    private int mSelectedPosition = GridView.INVALID_POSITION;
     private String mSortByValue;
 
     public MovieFragment() {
@@ -56,14 +64,22 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mSwipeRefreshLayout.setRefreshing(true);
+                if (!Utilities.isConnected(getActivity())) {
+                    Utilities.presentOfflineDialog(getActivity());
+                    mSwipeRefreshLayout.setRefreshing(false);
+                    return;
+                }
+
+                // Reset current item since we are refreshing data
+                mSelectedPosition = GridView.INVALID_POSITION;
                 mFetchMovieFragment.refreshContent();
+                mSwipeRefreshLayout.setRefreshing(true);
             }
         });
 
-        GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
-        gridView.setAdapter(mMovieAdapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGridView = (GridView) rootView.findViewById(R.id.gridview);
+        mGridView.setAdapter(mMovieAdapter);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
@@ -72,8 +88,15 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                             MovieContract.MovieEntry.buildMovieUri(id),
                             view.findViewById(R.id.poster_imageview));
                 }
+                mSelectedPosition = position;
             }
         });
+
+        // Restore saved values if available
+        if (savedInstanceState != null) {
+            mSelectedPosition = savedInstanceState.getInt(SELECTED_POSITION,
+                    GridView.INVALID_POSITION);
+        }
 
         SharedPreferences preferences = PreferenceManager
                 .getDefaultSharedPreferences(getActivity());
@@ -122,6 +145,26 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(SHOULD_SCROLL, mShouldScrollToSelectedItem);
+
+        // Save selected position when we handle rotation or similar.
+        if (mSelectedPosition != GridView.INVALID_POSITION) {
+            outState.putInt(SELECTED_POSITION, mSelectedPosition);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    /**
+     * Tells the fragment to activate smooth scrolling to selected item on rotate/similar events.
+     * 
+     * @param shouldScrollToSelectedItem
+     */
+    public void setShouldScrollToSelectedItem(boolean shouldScrollToSelectedItem) {
+        mShouldScrollToSelectedItem = shouldScrollToSelectedItem;
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // This is called when a new Loader needs to be created. This
         // fragment only uses one loader, so we don't care about checking the id.
@@ -138,6 +181,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
+        if (mSelectedPosition != ListView.INVALID_POSITION && mShouldScrollToSelectedItem) {
+            // If there's a desired position to restore to, do so now.
+            mGridView.smoothScrollToPosition(mSelectedPosition);
+        }
+
         mSwipeRefreshLayout.setRefreshing(false);
     }
 

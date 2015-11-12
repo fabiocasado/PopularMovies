@@ -138,7 +138,8 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
                 cVVector.add(movieValues);
             }
 
-            // Before insertion, we delete old records, since we may end up with old movies which
+            // Before insertion, we delete old records just in case, since we may end up with old
+            // movies which
             // data is never updated
             int deleted = mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI,
                     null, null);

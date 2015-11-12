@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Popular Movies</string>
+    <string name="app_name" translatable="false">Popular Movies</string>
 
     <string name="action_settings">Settings</string>
     <string name="movie_details">Movie Details</string>
@@ -7,6 +7,10 @@
     <string name="pref_sort_title">Sort by</string>
     <string name="sort_label_most_popular">Most popular</string>
     <string name="sort_label_highest_rated">Highest rated</string>
+
+
+    <string name="no_connection_message">Your internet connection appears to be down. Please double-check your connection.</string>
+    <string name="no_connection_title">No internet connection</string>
 
 
     <string name="pref_sort_key" translatable="false">sort</string>
