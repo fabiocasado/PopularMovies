@@ -23,6 +23,9 @@ import android.widget.ListView;
 import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.utils.Utilities;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * Shows movie list ui. If we are in two pane mode, it automatically scrolls to selected movie on
  * screen rotation or similar events. It contains the {@link FetchMovieFragment} to handle Movie API
@@ -42,10 +45,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private static final String SELECTED_POSITION = "selectedPosition";
     private static final int MOVIE_LOADER_ID = 100;
 
-    private FetchMovieFragment mFetchMovieFragment;
+    @Bind(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.gridview) GridView mGridView;
 
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-    private GridView mGridView;
+    private FetchMovieFragment mFetchMovieFragment;
     private MovieAdapter mMovieAdapter;
 
     private boolean mShouldScrollToSelectedItem;
@@ -62,8 +65,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        ButterKnife.bind(this, rootView);
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -90,7 +93,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             }
         });
 
-        mGridView = (GridView) rootView.findViewById(R.id.gridview);
         mGridView.setAdapter(mMovieAdapter);
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

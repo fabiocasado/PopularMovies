@@ -11,6 +11,9 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * Loads ui content from {@link Cursor} and implements ViewHolder pattern for performance. Loads
  * images with Picasso library.
@@ -46,11 +49,11 @@ public class MovieAdapter extends CursorAdapter {
     /**
      * Cache of the children views for a forecast list item.
      */
-    public static class ViewHolder {
-        public final ImageView posterView;
+    static class ViewHolder {
+        @Bind(R.id.poster_imageview) ImageView posterView;
 
         public ViewHolder(View view) {
-            posterView = (ImageView) view.findViewById(R.id.poster_imageview);
+            ButterKnife.bind(this, view);
         }
     }
 }

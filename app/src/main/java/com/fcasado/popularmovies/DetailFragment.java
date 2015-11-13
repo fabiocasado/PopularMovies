@@ -17,6 +17,9 @@ import android.widget.TextView;
 import com.fcasado.popularmovies.data.MovieContract;
 import com.squareup.picasso.Picasso;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * Shows movie details UI. Received movie URI in arguments.
  */
@@ -42,14 +45,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private Uri mUri;
 
-    private TextView mHelpView;
-    private View mMovieDetailView;
+    @Bind(R.id.help_textview) TextView mHelpView;
+    @Bind(R.id.movie_data_linear_layout) View mMovieDetailView;
 
-    private TextView mTitleView;
-    private TextView mReleaseDateView;
-    private TextView mUserRatingView;
-    private TextView mOverviewView;
-    private ImageView mPosterView;
+    @Bind(R.id.title_textview) TextView mTitleView;
+    @Bind(R.id.release_date_textview) TextView mReleaseDateView;
+    @Bind(R.id.user_rating_textview) TextView mUserRatingView;
+    @Bind(R.id.overview_textview) TextView mOverviewView;
+    @Bind(R.id.poster_imageview) ImageView mPosterView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,21 +64,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-
-        mHelpView = (TextView) rootView.findViewById(R.id.help_textview);
-        mMovieDetailView = rootView.findViewById(R.id.movie_data_linear_layout);
+        ButterKnife.bind(this, rootView);
 
         boolean shouldShowHelpView = getResources().getBoolean(R.bool.show_help_view);
         if (shouldShowHelpView) {
             mHelpView.setVisibility(View.VISIBLE);
             mMovieDetailView.setVisibility(View.INVISIBLE);
         }
-
-        mTitleView = (TextView) rootView.findViewById(R.id.title_textview);
-        mReleaseDateView = (TextView) rootView.findViewById(R.id.release_date_textview);
-        mUserRatingView = (TextView) rootView.findViewById(R.id.user_rating_textview);
-        mOverviewView = (TextView) rootView.findViewById(R.id.overview_textview);
-        mPosterView = (ImageView) rootView.findViewById(R.id.poster_imageview);
 
         return rootView;
     }
