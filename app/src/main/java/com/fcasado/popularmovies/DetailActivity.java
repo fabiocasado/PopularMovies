@@ -7,7 +7,8 @@ import android.view.MenuItem;
 import com.fcasado.popularmovies.utils.UpBugFixAppCompatActivity;
 
 /**
- * Created by fcasado on 07/11/2015.
+ * Activity to show movie details. Received movie URI in intent and pass to {@link DetailFragment}
+ * in arguments
  */
 public class DetailActivity extends UpBugFixAppCompatActivity {
 

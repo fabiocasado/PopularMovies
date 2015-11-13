@@ -18,7 +18,7 @@ import com.fcasado.popularmovies.data.MovieContract;
 import com.squareup.picasso.Picasso;
 
 /**
- * Created by fcasado on 10/11/2015.
+ * Shows movie details UI. Received movie URI in arguments.
  */
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 

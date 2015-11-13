@@ -11,7 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 /**
- * Created by fcasado on 04/11/2015.
+ * Movie {@link ContentProvider}. Allows quering for whole table and also single records when
+ * appending id.
  */
 public class MovieProvider extends ContentProvider {
     private static final int MOVIE = 100;

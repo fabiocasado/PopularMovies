@@ -24,7 +24,9 @@ import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.utils.Utilities;
 
 /**
- * Created by fcasado on 05/11/2015.
+ * Shows movie list ui. If we are in two pane mode, it automatically scrolls to selected movie on
+ * screen rotation or similar events. It contains the {@link FetchMovieFragment} to handle Movie API
+ * data query.
  */
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
@@ -130,7 +132,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 .getDefaultSharedPreferences(getActivity());
         String prefSortBy = preferences.getString(getString(R.string.pref_sort_key),
                 getString(R.string.sort_most_popular));
-        if (mSortByValue != prefSortBy) {
+        if (mSortByValue.compareTo(prefSortBy) != 0) {
             mSortByValue = prefSortBy;
             mFetchMovieFragment.refreshContent();
             getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
@@ -171,6 +173,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
      * Tells the fragment to activate smooth scrolling to selected item on rotate/similar events.
      * 
      * @param shouldScrollToSelectedItem
+     *            whether the fragment should scroll to selected item or not
      */
     public void setShouldScrollToSelectedItem(boolean shouldScrollToSelectedItem) {
         mShouldScrollToSelectedItem = shouldScrollToSelectedItem;

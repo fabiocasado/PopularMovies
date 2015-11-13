@@ -12,7 +12,8 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 /**
- * Created by fcasado on 05/11/2015.
+ * Loads ui content from {@link Cursor} and implements ViewHolder pattern for performance. Loads
+ * images with Picasso library.
  */
 public class MovieAdapter extends CursorAdapter {
 

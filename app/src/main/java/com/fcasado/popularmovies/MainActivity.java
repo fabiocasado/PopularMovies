@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 
 public class MainActivity extends AppCompatActivity implements MovieFragment.OnMovieItemSelected {
 
@@ -103,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
             ft.replace(R.id.movie_detail_container, fragment, TAG_MOVIE_DETAIL).commit();
         } else {
             Intent intent = new Intent(this, DetailActivity.class).setData(contentUri);
-            ImageView imageView = (ImageView) sharedView;
 
             if (sharedView != null) {
                 String transitionName = getString(R.string.transition_image);

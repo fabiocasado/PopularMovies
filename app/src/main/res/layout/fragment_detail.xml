@@ -14,7 +14,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp"
             android:gravity="center"
-            android:text="Select movie to see details"
+            android:text="@string/select_movie"
             android:textAppearance="?android:textAppearanceLarge"
             android:visibility="invisible"/>
 
@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <com.fcasado.popularmovies.views.SquareImageView
+                <com.fcasado.popularmovies.views.PosterImageView
                     android:id="@+id/poster_imageview"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -75,7 +75,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:elevation="8dp"
                 android:orientation="vertical"
                 android:padding="8dp">
 

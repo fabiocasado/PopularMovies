@@ -6,18 +6,18 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 /**
- * Created by fcasado on 05/11/2015.
+ * Special {@link ImageView} to better resemble posters aspect ratio 6:9
  */
-public class SquareImageView extends ImageView {
-    public SquareImageView(Context context) {
+public class PosterImageView extends ImageView {
+    public PosterImageView(Context context) {
         super(context);
     }
 
-    public SquareImageView(Context context, AttributeSet attrs) {
+    public PosterImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public SquareImageView(Context context, AttributeSet attrs, int defStyle) {
+    public PosterImageView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 

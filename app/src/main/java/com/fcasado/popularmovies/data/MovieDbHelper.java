@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.fcasado.popularmovies.data.MovieContract.MovieEntry;
 
 /**
- * Created by fcasado on 04/11/2015.
+ * Simple DB Helper for app's database.
  */
 public class MovieDbHelper extends SQLiteOpenHelper {
     static final String DATABASE_NAME = "movie.db";

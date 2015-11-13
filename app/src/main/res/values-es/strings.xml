@@ -9,6 +9,7 @@
 
     <string name="no_connection_message">La conexión a internet parece no funcionar. Por favor, revise su conexión.</string>
     <string name="no_connection_title">Sin conexión a Internet</string>
+    <string name="select_movie">Seleccione una peícula para ver sus detalles</string>
 
 
 </resources>

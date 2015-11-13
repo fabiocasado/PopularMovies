@@ -2,7 +2,7 @@
 package com.fcasado.popularmovies.data;
 
 /**
- * Created by fcasado on 04/11/2015.
+ * Constants related with theMovieDB.org API.
  */
 public class MovieAPI {
     public static final String BASE_URI = "http://api.themoviedb.org/3/";
@@ -28,6 +28,7 @@ public class MovieAPI {
      * we should.
      * 
      * @param endpoint
+     *            Endpoint to append to base Movie API url
      * @return String pointing to the web address of the endpoint
      */
     public static String buildEndpointUri(String endpoint) {

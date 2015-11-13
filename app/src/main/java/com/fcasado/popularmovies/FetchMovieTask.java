@@ -25,7 +25,8 @@ import java.net.URL;
 import java.util.Vector;
 
 /**
- * Created by fcasado on 04/11/2015.
+ * Queries theMovieDB API and saves received data to database. Takes into account the "sort by" app
+ * setting.
  */
 public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
     private static final String LOG_TAG = FetchMovieTask.class.getSimpleName();
@@ -44,7 +45,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
         BufferedReader reader = null;
 
         // Will contain the raw JSON response as a string.
-        String movieJsonStr = null;
+        String movieJsonStr;
 
         try {
             // Initialize uri builder
@@ -93,7 +94,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
                 // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
                 // But it does make debugging a *lot* easier if you print out the completed
                 // buffer for debugging.
-                buffer.append(line + "\n");
+                buffer.append(line).append("\n");
             }
 
             if (buffer.length() == 0) {

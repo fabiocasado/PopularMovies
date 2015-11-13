@@ -10,10 +10,10 @@ import android.net.NetworkInfo;
 import com.fcasado.popularmovies.R;
 
 /**
- * Created by fcasado on 12/11/2015.
+ * UContain simple utility methods used throughout the app.
  */
 public class Utilities {
-    public static final boolean isConnected(Context context) {
+    public static boolean isConnected(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -21,7 +21,7 @@ public class Utilities {
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
-    public static final void presentOfflineDialog(Context context) {
+    public static void presentOfflineDialog(Context context) {
         // 1. Instantiate an AlertDialog.Builder with its constructor
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 

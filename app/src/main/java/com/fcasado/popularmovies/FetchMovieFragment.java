@@ -9,7 +9,8 @@ import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.utils.Utilities;
 
 /**
- * Created by fcasado on 05/11/2015.
+ * Ui-less fragment used to contain {@link FetchMovieTask} in order to avoid leaks from multiple
+ * tasks running due to activity recreation.
  */
 public class FetchMovieFragment extends Fragment
         implements FetchMovieTask.OnMovieDataFetchFinished {
