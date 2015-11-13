@@ -8,13 +8,14 @@ import android.util.Log;
 import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.utils.Utilities;
 
+import timber.log.Timber;
+
 /**
  * Ui-less fragment used to contain {@link FetchMovieTask} in order to avoid leaks from multiple
  * tasks running due to activity recreation.
  */
 public class FetchMovieFragment extends Fragment
         implements FetchMovieTask.OnMovieDataFetchFinished {
-    private static final String LOG_TAG = FetchMovieFragment.class.getSimpleName();
     private FetchMovieTask mTask;
     private boolean mIsTaskFinished;
 
@@ -25,7 +26,7 @@ public class FetchMovieFragment extends Fragment
 
         // When starting the app, we delete old content since we are going to fetch updated one
         getActivity().getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-        Log.d(LOG_TAG, "Content in DB deleted");
+        Timber.d("Content in DB deleted");
     }
 
     @Override
@@ -56,7 +57,7 @@ public class FetchMovieFragment extends Fragment
             // since some images and data may not be there, thus creating a weird/bad UX
             int deleted = getActivity().getContentResolver()
                     .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-            Log.d(LOG_TAG, "No internet connection. Deleting old data to avoid bad UX. " + deleted
+            Timber.d("No internet connection. Deleting old data to avoid bad UX. " + deleted
                     + " deleted");
             return;
         }

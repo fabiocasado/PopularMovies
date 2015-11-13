@@ -7,7 +7,6 @@ repositories {
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
-
     defaultConfig {
         applicationId "com.fcasado.popularmovies"
         minSdkVersion 16
@@ -24,7 +23,6 @@ android {
     buildTypes.each {
         it.buildConfigField 'String', 'MOVIE_DB_API_KEY', WEATHER_API_KEY
     }
-
     // Extra options for using Butter Knife
     lintOptions {
         disable 'InvalidPackage'
@@ -40,6 +38,10 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.jakewharton.timber:timber:4.1.0'
     compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'com.facebook.stetho:stetho:1.2.0'
+    compile 'com.facebook.stetho:stetho-okhttp:1.2.0'
 }

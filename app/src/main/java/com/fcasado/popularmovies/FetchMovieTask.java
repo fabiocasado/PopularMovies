@@ -9,8 +9,12 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.facebook.stetho.okhttp.StethoInterceptor;
 import com.fcasado.popularmovies.data.MovieAPI;
 import com.fcasado.popularmovies.data.MovieContract;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,12 +28,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
+import timber.log.Timber;
+
 /**
  * Queries theMovieDB API and saves received data to database. Takes into account the "sort by" app
  * setting.
  */
 public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
-    private static final String LOG_TAG = FetchMovieTask.class.getSimpleName();
     private OnMovieDataFetchFinished mCallback;
     private Context mContext;
 
@@ -40,9 +45,8 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected Void doInBackground(Void... params) {
-        Log.d(LOG_TAG, "Starting work");
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
+        Timber.d("Starting work");
+
 
         // Will contain the raw JSON response as a string.
         String movieJsonStr;
@@ -72,53 +76,22 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             Uri builtUri = uriBuilder
                     .appendQueryParameter(MovieAPI.API_KEY_PARAM, BuildConfig.MOVIE_DB_API_KEY)
                     .build();
-            System.out.println("Uri: " + builtUri);
             URL url = new URL(builtUri.toString());
 
-            // Create the request to MovieDbAPI, and open the connection
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(url)
+                    .build();
 
-            // Read the input stream into a String
-            InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
-            if (inputStream == null) {
-                // Nothing to do.
-                return null;
-            }
-            reader = new BufferedReader(new InputStreamReader(inputStream));
+            Response response = client.newCall(request).execute();
+            movieJsonStr = response.body().string();
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                // But it does make debugging a *lot* easier if you print out the completed
-                // buffer for debugging.
-                buffer.append(line).append("\n");
-            }
-
-            if (buffer.length() == 0) {
-                // Stream was empty. No point in parsing.
-                return null;
-            }
-            movieJsonStr = buffer.toString();
             getMovieDataFromJson(movieJsonStr);
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Error ", e);
+            Timber.e(e, "Error");
             // If the code didn't successfully get the movie data, there's no point in
             // attempting
             // to parse it.
-        } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    Log.e(LOG_TAG, "Error closing stream", e);
-                }
-            }
         }
 
         return null;
@@ -164,7 +137,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             // movies which data is never updated
             int deleted = mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI,
                     null, null);
-            Log.d(LOG_TAG, "Deleting old data before insert. " + deleted + " deleted");
+            Timber.d("Deleting old data before insert. " + deleted + " deleted");
 
             int inserted = 0;
             // add to database
@@ -175,7 +148,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
                         .bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);
             }
 
-            Log.d(LOG_TAG, "FetchMovieTask Complete. " + inserted + " Inserted");
+            Timber.d("FetchMovieTask Complete. " + inserted + " Inserted");
         } catch (JSONException e) {
             e.printStackTrace();
         }

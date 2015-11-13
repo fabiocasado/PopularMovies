@@ -25,6 +25,7 @@ import com.fcasado.popularmovies.utils.Utilities;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import timber.log.Timber;
 
 /**
  * Shows movie list ui. If we are in two pane mode, it automatically scrolls to selected movie on
@@ -34,7 +35,7 @@ import butterknife.ButterKnife;
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
     static final int COL_POSTER_PATH = 1;
-    private static final String LOG_TAG = MovieFragment.class.getSimpleName();
+
     // On gridView we only need movie poster.
     private static final String[] MOVIE_COLUMNS = {
             MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_POSTER_PATH
@@ -78,8 +79,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                     // since some images and data may not be there, thus creating a weird/bad UX
                     int deleted = getActivity().getContentResolver()
                             .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-                    Log.d(LOG_TAG,
-                            "No internet connection on refresh. Deleting old data to avoid bad UX. "
+                    Timber.d("No internet connection on refresh. Deleting old data to avoid bad UX. "
                                     + deleted + " deleted");
 
                     mSwipeRefreshLayout.setRefreshing(false);
