@@ -42,17 +42,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             MovieContract.MovieEntry.COLUMN_RELEASE_DATE
     };
     private static final int DETAIL_LOADER = 0;
-
-    private Uri mUri;
-
     @Bind(R.id.help_textview) TextView mHelpView;
     @Bind(R.id.movie_data_linear_layout) View mMovieDetailView;
-
     @Bind(R.id.title_textview) TextView mTitleView;
     @Bind(R.id.release_date_textview) TextView mReleaseDateView;
     @Bind(R.id.user_rating_textview) TextView mUserRatingView;
     @Bind(R.id.overview_textview) TextView mOverviewView;
     @Bind(R.id.poster_imageview) ImageView mPosterView;
+    private Uri mUri;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -109,8 +106,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             String portraitPath = data.getString(COL_POSTER_PATH);
             if (portraitPath != null && portraitPath.length() > 0) {
                 portraitPath = getString(R.string.movie_poster_uri).concat(portraitPath);
+
                 Picasso.with(getActivity()).load(portraitPath)
-                        .placeholder(R.drawable.ic_poster_details).noFade().into(mPosterView);
+                        .placeholder(R.drawable.ic_poster_details).error(R.drawable.ic_poster_details_error).noFade().into(mPosterView);
             }
         }
     }

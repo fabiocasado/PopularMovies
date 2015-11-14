@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.SharedPreferences;
@@ -7,12 +6,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +18,7 @@ import android.widget.GridView;
 import android.widget.ListView;
 
 import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.sync.MovieSyncAdapter;
 import com.fcasado.popularmovies.utils.Utilities;
 
 import butterknife.Bind;
@@ -46,10 +44,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private static final String SELECTED_POSITION = "selectedPosition";
     private static final int MOVIE_LOADER_ID = 100;
 
-    @Bind(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
-    @Bind(R.id.gridview) GridView mGridView;
+    @Bind(R.id.swipe_refresh_layout)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.gridview)
+    GridView mGridView;
 
-    private FetchMovieFragment mFetchMovieFragment;
     private MovieAdapter mMovieAdapter;
 
     private boolean mShouldScrollToSelectedItem;
@@ -61,7 +60,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
 
         mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
 
@@ -74,13 +73,13 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 if (!Utilities.isConnected(getActivity())) {
                     Utilities.presentOfflineDialog(getActivity());
 
-                    // If we were trying to do a new fetch, but we are offline, we still delete old
-                    // records,
-                    // since some images and data may not be there, thus creating a weird/bad UX
-                    int deleted = getActivity().getContentResolver()
-                            .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-                    Timber.d("No internet connection on refresh. Deleting old data to avoid bad UX. "
-                                    + deleted + " deleted");
+//                    // If we were trying to do a new fetch, but we are offline, we still delete old
+//                    // records,
+//                    // since some images and data may not be there, thus creating a weird/bad UX
+//                    int deleted = getActivity().getContentResolver()
+//                            .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
+//                    Timber.d("No internet connection on refresh. Deleting old data to avoid bad UX. "
+//                            + deleted + " deleted");
 
                     mSwipeRefreshLayout.setRefreshing(false);
                     return;
@@ -88,7 +87,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
                 // Reset current item since we are refreshing data
                 mSelectedPosition = GridView.INVALID_POSITION;
-                mFetchMovieFragment.refreshContent();
+                refreshContent();
                 mSwipeRefreshLayout.setRefreshing(true);
             }
         });
@@ -136,26 +135,31 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 getString(R.string.sort_most_popular));
         if (mSortByValue.compareTo(prefSortBy) != 0) {
             mSortByValue = prefSortBy;
-            mFetchMovieFragment.refreshContent();
+
+            // If we were trying to do a new fetch with different sorting criteria, we delete old records
+            int deleted = getActivity().getContentResolver()
+                    .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
+            Timber.d("Sorting criteria changed. Deleting old data. " + deleted
+                    + " deleted");
+
+            refreshContent();
             getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
         }
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        FragmentManager fm = getFragmentManager();
+    private void refreshContent() {
+        if (!Utilities.isConnected(getActivity())) {
+            Utilities.presentOfflineDialog(getActivity());
 
-        // Check to see if we have retained the movie data fetching fragment.
-        mFetchMovieFragment = (FetchMovieFragment) fm.findFragmentByTag(TAG_FETCH_MOVIE);
 
-        // If not retained (or first time running), we need to create it.
-        if (mFetchMovieFragment == null) {
-            mFetchMovieFragment = new FetchMovieFragment();
-            // Tell it who it is working with.
-            mFetchMovieFragment.setTargetFragment(this, 0);
-            fm.beginTransaction().add(mFetchMovieFragment, TAG_FETCH_MOVIE).commit();
+            return;
         }
 
+        MovieSyncAdapter.syncImmediately(getActivity());
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
         getLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
     }
@@ -173,9 +177,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     /**
      * Tells the fragment to activate smooth scrolling to selected item on rotate/similar events.
-     * 
-     * @param shouldScrollToSelectedItem
-     *            whether the fragment should scroll to selected item or not
+     *
+     * @param shouldScrollToSelectedItem whether the fragment should scroll to selected item or not
      */
     public void setShouldScrollToSelectedItem(boolean shouldScrollToSelectedItem) {
         mShouldScrollToSelectedItem = shouldScrollToSelectedItem;
@@ -204,6 +207,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
         mSwipeRefreshLayout.setRefreshing(false);
+
+        if (data.getCount() == 0) {
+            // If empty data, start new sync
+            MovieSyncAdapter.syncImmediately(getActivity());
+        }
     }
 
     @Override

@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.Context;
@@ -42,6 +41,7 @@ public class MovieAdapter extends CursorAdapter {
         if (portraitPath != null && portraitPath.length() > 0) {
             portraitPath = context.getString(R.string.movie_poster_uri).concat(portraitPath);
             Picasso.with(context).load(portraitPath).placeholder(R.drawable.ic_poster)
+                    .error(R.drawable.ic_poster_details_error)
                     .into(viewHolder.posterView);
         }
     }
@@ -50,7 +50,8 @@ public class MovieAdapter extends CursorAdapter {
      * Cache of the children views for a forecast list item.
      */
     static class ViewHolder {
-        @Bind(R.id.poster_imageview) ImageView posterView;
+        @Bind(R.id.poster_imageview)
+        ImageView posterView;
 
         public ViewHolder(View view) {
             ButterKnife.bind(this, view);

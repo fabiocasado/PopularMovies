@@ -1,15 +1,22 @@
+package com.fcasado.popularmovies.sync;
 
-package com.fcasado.popularmovies;
-
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.AbstractThreadedSyncAdapter;
+import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SyncRequest;
+import android.content.SyncResult;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
-import com.facebook.stetho.okhttp.StethoInterceptor;
+import com.fcasado.popularmovies.BuildConfig;
+import com.fcasado.popularmovies.R;
 import com.fcasado.popularmovies.data.MovieAPI;
 import com.fcasado.popularmovies.data.MovieContract;
 import com.squareup.okhttp.OkHttpClient;
@@ -20,33 +27,116 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
 import timber.log.Timber;
 
-/**
- * Queries theMovieDB API and saves received data to database. Takes into account the "sort by" app
- * setting.
- */
-public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
-    private OnMovieDataFetchFinished mCallback;
-    private Context mContext;
+public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
+    // Interval at which to sync with the weather, in milliseconds.
+    // 60 seconds (1 minute) * 180 = 3 hours
+    public static final int SYNC_INTERVAL = 30 * 1;
+    public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
 
-    public FetchMovieTask(Context context, OnMovieDataFetchFinished callback) {
-        mContext = context;
-        mCallback = callback;
+    public final String LOG_TAG = MovieSyncAdapter.class.getSimpleName();
+
+    public MovieSyncAdapter(Context context, boolean autoInitialize) {
+        super(context, autoInitialize);
+    }
+
+    /**
+     * Helper method to have the sync adapter sync immediately
+     *
+     * @param context The context used to access the account service
+     */
+    public static void syncImmediately(Context context) {
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+        ContentResolver.requestSync(getSyncAccount(context),
+                context.getString(R.string.content_authority), bundle);
+    }
+
+    /**
+     * Helper method to get the fake account to be used with SyncAdapter, or make a new one
+     * if the fake account doesn't exist yet.  If we make a new account, we call the
+     * onAccountCreated method so we can initialize things.
+     *
+     * @param context The context used to access the account service
+     * @return a fake account.
+     */
+    public static Account getSyncAccount(Context context) {
+        // Get an instance of the Android account manager
+        AccountManager accountManager =
+                (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
+
+        // Create the account type and default account
+        Account newAccount = new Account(
+                context.getString(R.string.app_name), context.getString(R.string.sync_account_type));
+
+        // If the password doesn't exist, the account doesn't exist
+        if (null == accountManager.getPassword(newAccount)) {
+
+        /*
+         * Add the account and account type, no password or user data
+         * If successful, return the Account object, otherwise report an error.
+         */
+            if (!accountManager.addAccountExplicitly(newAccount, "", null)) {
+                return null;
+            }
+            /*
+             * Provider already set as android:syncable in manifest, so no need to setIsSyncable here.
+             */
+
+            onAccountCreated(newAccount, context);
+        }
+        return newAccount;
+    }
+
+    /**
+     * Helper method to schedule the sync adapter periodic execution
+     */
+    public static void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
+        Account account = getSyncAccount(context);
+        String authority = context.getString(R.string.content_authority);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // we can enable inexact timers in our periodic sync
+            SyncRequest request = new SyncRequest.Builder().
+                    syncPeriodic(syncInterval, flexTime).
+                    setSyncAdapter(account, authority).
+                    setExtras(new Bundle()).build();
+            ContentResolver.requestSync(request);
+        } else {
+            ContentResolver.addPeriodicSync(account,
+                    authority, new Bundle(), syncInterval);
+        }
+    }
+
+    private static void onAccountCreated(Account newAccount, Context context) {
+        /*
+         * Since we've created an account
+         */
+        MovieSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
+
+        /*
+         * Without calling setSyncAutomatically, our periodic sync will not be enabled.
+         */
+        ContentResolver.setSyncAutomatically(newAccount, context.getString(R.string.content_authority), true);
+
+        /*
+         * Finally, let's do a sync to get things started
+         */
+        syncImmediately(context);
+    }
+
+    public static void initializeSyncAdapter(Context context) {
+        getSyncAccount(context);
     }
 
     @Override
-    protected Void doInBackground(Void... params) {
-        Timber.d("Starting work");
-
+    public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+        Timber.d("Starting sync.");
 
         // Will contain the raw JSON response as a string.
         String movieJsonStr;
@@ -57,10 +147,10 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
                     .buildUpon();
 
             // Get the sorting criteria for the api call. By default we will use "Most Popular"
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-            String sortValue = preferences.getString(mContext.getString(R.string.pref_sort_key),
-                    mContext.getString(R.string.pref_sort_default));
-            if (sortValue.equalsIgnoreCase(mContext.getString(R.string.sort_most_popular))) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            String sortValue = preferences.getString(getContext().getString(R.string.pref_sort_key),
+                    getContext().getString(R.string.pref_sort_default));
+            if (sortValue.equalsIgnoreCase(getContext().getString(R.string.sort_most_popular))) {
                 uriBuilder.appendQueryParameter(MovieAPI.API_SORT_BY_PARAM,
                         MovieAPI.MOVIE_POPULARITY + ".desc");
             } else {
@@ -93,8 +183,6 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             // attempting
             // to parse it.
         }
-
-        return null;
     }
 
     private void getMovieDataFromJson(String movieJsonStr) {
@@ -135,7 +223,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
 
             // Before insertion, we delete old records just in case, since we may end up with old
             // movies which data is never updated
-            int deleted = mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI,
+            int deleted = getContext().getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI,
                     null, null);
             Timber.d("Deleting old data before insert. " + deleted + " deleted");
 
@@ -144,7 +232,7 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
             if (cVVector.size() > 0) {
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
-                inserted = mContext.getContentResolver()
+                inserted = getContext().getContentResolver()
                         .bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);
             }
 
@@ -152,16 +240,5 @@ public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
-
-        mCallback.onMovieDataFetchFinished();
-    }
-
-    public interface OnMovieDataFetchFinished {
-        void onMovieDataFetchFinished();
     }
 }
