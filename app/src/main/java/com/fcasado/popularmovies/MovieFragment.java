@@ -10,12 +10,14 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.sync.MovieSyncAdapter;
@@ -27,11 +29,11 @@ import timber.log.Timber;
 
 /**
  * Shows movie list ui. If we are in two pane mode, it automatically scrolls to selected movie on
- * screen rotation or similar events. It contains the {@link FetchMovieFragment} to handle Movie API
- * data query.
+ * screen rotation or similar events.
  */
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
+    static final int COL_MOVIE_ID = 0;
     static final int COL_POSTER_PATH = 1;
 
     // On gridView we only need movie poster.
@@ -46,13 +48,15 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Bind(R.id.swipe_refresh_layout)
     SwipeRefreshLayout mSwipeRefreshLayout;
-    @Bind(R.id.gridview)
-    GridView mGridView;
+    @Bind(R.id.recyclerview)
+    RecyclerView mRecyclerView;
+    @Bind(R.id.recyclerview_empty_textview)
+    TextView mEmptyView;
 
     private MovieAdapter mMovieAdapter;
 
+    private int mSelectedPosition = RecyclerView.NO_POSITION;
     private boolean mShouldScrollToSelectedItem;
-    private int mSelectedPosition = GridView.INVALID_POSITION;
     private String mSortByValue;
 
     public MovieFragment() {
@@ -61,11 +65,36 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
+        // Restore saved values if available
+        if (savedInstanceState != null) {
+            mSelectedPosition = savedInstanceState.getInt(SELECTED_POSITION,
+                    GridView.INVALID_POSITION);
+        }
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
+
+        mMovieAdapter = new MovieAdapter(getActivity(), new MovieAdapter.MovieAdapterOnClickHandler() {
+            @Override
+            public void onClick(long movieId, MovieAdapter.MovieAdapterViewHolder viewHolder) {
+                ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
+                        MovieContract.MovieEntry.buildMovieUri(movieId),
+                        viewHolder.posterView);
+
+                mSelectedPosition = viewHolder.getAdapterPosition();
+            }
+        }, mEmptyView);
+
+
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), getResources().getInteger(R.integer.grid_columns)));
+        mRecyclerView.setHasFixedSize(true); // Improves performance, since size of content won't change
+        mRecyclerView.setAdapter(mMovieAdapter);
+
+
+        SharedPreferences preferences = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        mSortByValue = preferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_sort_default));
 
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -91,31 +120,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 mSwipeRefreshLayout.setRefreshing(true);
             }
         });
-
-        mGridView.setAdapter(mMovieAdapter);
-        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
-                    ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
-                            MovieContract.MovieEntry.buildMovieUri(id),
-                            view.findViewById(R.id.poster_imageview));
-                }
-                mSelectedPosition = position;
-            }
-        });
-
-        // Restore saved values if available
-        if (savedInstanceState != null) {
-            mSelectedPosition = savedInstanceState.getInt(SELECTED_POSITION,
-                    GridView.INVALID_POSITION);
-        }
-
-        SharedPreferences preferences = PreferenceManager
-                .getDefaultSharedPreferences(getActivity());
-        mSortByValue = preferences.getString(getString(R.string.pref_sort_key),
-                getString(R.string.pref_sort_default));
 
         return rootView;
     }
@@ -203,7 +207,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mMovieAdapter.swapCursor(data);
         if (mSelectedPosition != ListView.INVALID_POSITION && mShouldScrollToSelectedItem) {
             // If there's a desired position to restore to, do so now.
-            mGridView.smoothScrollToPosition(mSelectedPosition);
+            mRecyclerView.smoothScrollToPosition(mSelectedPosition);
         }
 
         mSwipeRefreshLayout.setRefreshing(false);
