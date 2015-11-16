@@ -19,6 +19,9 @@ public class MovieContract {
     // Path (appended to base content URI) for querying movie data
     public static final String PATH_MOVIE = "movie";
 
+    // Path (appended to base content URI) for querying trailer data
+    public static final String PATH_TRAILER = "trailer";
+
     /* Inner class that defines the table contents of the movie table */
     public static final class MovieEntry implements BaseColumns {
 
@@ -55,6 +58,31 @@ public class MovieContract {
         public static final String COLUMN_POPULARITY = "popularity";
 
         public static Uri buildMovieUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
+    /* Inner class that defines the table contents of the trailer table */
+    public static final class TrailerEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER)
+                .build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                + CONTENT_AUTHORITY + "/" + PATH_TRAILER;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/"
+                + CONTENT_AUTHORITY + "/" + PATH_TRAILER;
+
+        // Table name
+        public static final String TABLE_NAME = "trailer";
+
+        // Movie id to related trailer with movie
+        public static final String COLUMND_MOVIE_ID = "movieId";
+
+        // Trailer movie key for youtube URL
+        public static final String COLUMN_VIDEO_KEY = "videKey";
+
+        public static Uri buildTrailerUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }

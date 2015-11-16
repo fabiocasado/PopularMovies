@@ -42,6 +42,7 @@ public class TestDb extends AndroidTestCase {
         // Store our tables names to test if they are all created correctly
         final HashSet<String> tableNameHashSet = new HashSet<String>();
         tableNameHashSet.add(MovieContract.MovieEntry.TABLE_NAME);
+        tableNameHashSet.add(MovieContract.TrailerEntry.TABLE_NAME);
 
         mContext.deleteDatabase(MovieDbHelper.DATABASE_NAME);
         SQLiteDatabase db = new MovieDbHelper(this.mContext).getWritableDatabase();
@@ -100,7 +101,7 @@ public class TestDb extends AndroidTestCase {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         // Create test movie values
-        ContentValues movieValues = TestUtilities.createMovieValues();
+        ContentValues movieValues = TestUtilities.createSpectreMovieValues();
 
         // Insert ContentValues into database and get a row ID back
         long movieRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, movieValues);
@@ -124,5 +125,55 @@ public class TestDb extends AndroidTestCase {
         // Close cursor and database
         movieCursor.close();
         dbHelper.close();
+    }
+
+    public void testTrailerTable() {
+        insertTrailer();
+    }
+
+    /**
+     * Insert trailer to db. Utility method to use on different tests.
+     * 
+     * @return id of inserted trailer
+     */
+    public long insertTrailer() {
+        MovieDbHelper dbHelper = new MovieDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues testValues = TestUtilities
+                .createTrailerValues(Long.valueOf(TestUtilities.TEST_MOVIE_ID));
+
+        long trailerRowId;
+        trailerRowId = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, testValues);
+
+        // Verify we got a row back.
+        assertTrue(trailerRowId != -1);
+
+        // Data's inserted. IN THEORY. Now pull some out to stare at it and verify it made
+        // the round trip.
+
+        Cursor cursor = db.query(MovieContract.TrailerEntry.TABLE_NAME, // Table to Query
+                null, // all columns
+                null, // Columns for the "where" clause
+                null, // Values for the "where" clause
+                null, // columns to group by
+                null, // columns to filter by row groups
+                null // sort order
+        );
+
+        // Move the cursor to a valid database row and check to see if we got any records back
+        // from the query
+        assertTrue("Error: No Records returned from trailer query", cursor.moveToFirst());
+
+        TestUtilities.validateCurrentRecord("Error: Trailer Query Validation Failed", cursor,
+                testValues);
+
+        // Move the cursor to demonstrate that there is only one record in the database
+        assertFalse("Error: More than one record returned from trailer query", cursor.moveToNext());
+
+        // Sixth Step: Close Cursor and Database
+        cursor.close();
+        db.close();
+        return trailerRowId;
     }
 }
