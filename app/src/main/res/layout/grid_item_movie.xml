@@ -3,16 +3,19 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
+             android:background="?android:attr/selectableItemBackground"
+             android:clickable="true"
+             android:clipToPadding="false"
+             android:focusable="true"
              android:minHeight="?android:attr/listPreferredItemHeight"
-             android:padding="10dp"
-             android:clipToPadding="false">
+             android:padding="10dp">
 
     <com.fcasado.popularmovies.views.PosterImageView
         android:id="@+id/poster_imageview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scaleType="centerCrop"
         android:background="@drawable/drop_shadow"
+        android:scaleType="centerCrop"
         android:transitionName="@string/transition_image"
         tools:ignore="UnusedAttribute"/>
 

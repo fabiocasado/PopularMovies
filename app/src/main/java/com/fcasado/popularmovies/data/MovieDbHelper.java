@@ -25,11 +25,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + TrailerEntry.TABLE_NAME + " ("
                 + TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + TrailerEntry.COLUMND_MOVIE_ID + " INTEGER NOT NULL, "
-                + TrailerEntry.COLUMN_VIDEO_KEY + " TEXT NOT NULL, "
-
-        // Set up the movie id column as a foreign key to movie table.
-                + " FOREIGN KEY (" + TrailerEntry.COLUMND_MOVIE_ID + ") REFERENCES "
-                + MovieEntry.TABLE_NAME + " (" + MovieEntry._ID + ") " + " );";
+                + TrailerEntry.COLUMN_VIDEO_KEY + " TEXT NOT NULL " + " );";
 
         final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieEntry.TABLE_NAME + " ("
                 + MovieEntry._ID + " INTEGER PRIMARY KEY," + MovieEntry.COLUMN_TITLE
