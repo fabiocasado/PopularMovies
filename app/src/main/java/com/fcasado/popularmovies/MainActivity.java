@@ -4,7 +4,6 @@ package com.fcasado.popularmovies;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -107,15 +106,7 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
             ft.replace(R.id.movie_detail_container, fragment, TAG_MOVIE_DETAIL).commit();
         } else {
             Intent intent = new Intent(this, DetailActivity.class).setData(contentUri);
-
-            if (sharedView != null) {
-                String transitionName = getString(R.string.transition_image);
-                Bundle bundle = ActivityOptionsCompat
-                        .makeSceneTransitionAnimation(this, sharedView, transitionName).toBundle();
-                startActivity(intent, bundle);
-            } else {
-                startActivity(intent);
-            }
+            startActivity(intent);
         }
 
     }

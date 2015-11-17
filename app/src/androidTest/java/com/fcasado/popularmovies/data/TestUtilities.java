@@ -65,7 +65,7 @@ public class TestUtilities extends AndroidTestCase {
         ContentValues trailerValues = new ContentValues();
         trailerValues.put(MovieContract.TrailerEntry._ID, TEST_TRAILER_ID);
         trailerValues.put(MovieContract.TrailerEntry.COLUMN_VIDEO_KEY, TEST_TRAILER_KEY);
-        trailerValues.put(MovieContract.TrailerEntry.COLUMND_MOVIE_ID, movieId);
+        trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, movieId);
 
         return trailerValues;
     }
@@ -88,7 +88,7 @@ public class TestUtilities extends AndroidTestCase {
     // static ContentValues createSpectreTrailerValues() {
     // // Create a new map of values, where column names are the keys
     // ContentValues testValues = new ContentValues();
-    // testValues.put(MovieContract.TrailerEntry.COLUMND_MOVIE_ID, TEST_MOVIE_ID);
+    // testValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, TEST_MOVIE_ID);
     // testValues.put(MovieContract.TrailerEntry.COLUMN_VIDEO_KEY, TEST_TRAILER_KEY);
     //
     // return testValues;

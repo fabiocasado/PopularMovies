@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.fcasado.popularmovies.data.MovieContract.MovieEntry;
+import com.fcasado.popularmovies.data.MovieContract.ReviewEntry;
 import com.fcasado.popularmovies.data.MovieContract.TrailerEntry;
 
 /**
@@ -22,11 +23,6 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + TrailerEntry.TABLE_NAME + " ("
-                + TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + TrailerEntry.COLUMND_MOVIE_ID + " INTEGER NOT NULL, "
-                + TrailerEntry.COLUMN_VIDEO_KEY + " TEXT NOT NULL " + " );";
-
         final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieEntry.TABLE_NAME + " ("
                 + MovieEntry._ID + " INTEGER PRIMARY KEY," + MovieEntry.COLUMN_TITLE
                 + " TEXT NOT NULL, " + MovieEntry.COLUMN_ORIGINAL_TITLE + " TEXT NOT NULL, "
@@ -34,8 +30,19 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 + MovieEntry.COLUMN_RELEASE_DATE + " TEXT, " + MovieEntry.COLUMN_USER_RATING
                 + " REAL, " + MovieEntry.COLUMN_POPULARITY + " REAL " + ");";
 
+        final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + TrailerEntry.TABLE_NAME + " ("
+                + TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + TrailerEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, "
+                + TrailerEntry.COLUMN_VIDEO_KEY + " TEXT NOT NULL " + " );";
+
+        final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " + ReviewEntry.TABLE_NAME + " ("
+                + ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + ReviewEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " + ReviewEntry.COLUMN_AUTHOR
+                + " TEXT NOT NULL, " + ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL " + " );";
+
         db.execSQL(SQL_CREATE_MOVIE_TABLE);
         db.execSQL(SQL_CREATE_TRAILER_TABLE);
+        db.execSQL(SQL_CREATE_REVIEW_TABLE);
     }
 
     @Override
@@ -44,6 +51,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         // on each upgrade.
         db.execSQL("DROP TABLE IF EXISTS " + MovieEntry.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + TrailerEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + ReviewEntry.TABLE_NAME);
         onCreate(db);
     }
 }

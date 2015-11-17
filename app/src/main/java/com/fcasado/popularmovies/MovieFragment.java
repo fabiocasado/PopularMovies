@@ -19,12 +19,13 @@ import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.sync.MovieSyncAdapter;
 import com.fcasado.popularmovies.utils.Utilities;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
 import timber.log.Timber;
 
 /**
@@ -78,7 +79,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             @Override
             public void onClick(long movieId, MovieAdapter.MovieAdapterViewHolder viewHolder) {
                 ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
-                        MovieContract.MovieEntry.buildMovieUri(movieId),
+                                MovieContract.MovieEntry.buildUri(movieId),
                         viewHolder.posterView);
 
                 mSelectedPosition = viewHolder.getAdapterPosition();

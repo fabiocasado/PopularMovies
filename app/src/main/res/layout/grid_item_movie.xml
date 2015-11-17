@@ -14,7 +14,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/drop_shadow"
-        android:scaleType="centerCrop"
-        android:transitionName="@string/transition_image"/>
+        android:scaleType="centerCrop"/>
 
 </FrameLayout>

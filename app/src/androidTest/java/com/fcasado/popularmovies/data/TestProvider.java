@@ -136,7 +136,7 @@ public class TestProvider extends AndroidTestCase {
         long movieId = 111111L;
         // content://com.fcasado.popularmovies/Movie/111111
         type = mContext.getContentResolver()
-                .getType(MovieContract.MovieEntry.buildMovieUri(movieId));
+.getType(MovieContract.MovieEntry.buildUri(movieId));
         // vnd.android.cursor.dir/com.fcasado.popularmovies/Movie
         assertEquals(
                 "Error: the MovieEntry CONTENT_URI with Trailer should return MovieEntry.CONTENT_TYPE",
@@ -151,7 +151,7 @@ public class TestProvider extends AndroidTestCase {
         // content://com.fcasado.popularmovies/Trailer/1
         long trailerId = 1L;
         type = mContext.getContentResolver()
-                .getType(MovieContract.TrailerEntry.buildTrailerUri(trailerId));
+                .getType(MovieContract.TrailerEntry.buildUri(trailerId));
         // vnd.android.cursor.dir/com.fcasado.popularmovies/Trailer
         assertEquals("Error: the TrailerEntry CONTENT_URI should return TrailerEntry.CONTENT_TYPE",
                 MovieContract.TrailerEntry.CONTENT_TYPE, type);

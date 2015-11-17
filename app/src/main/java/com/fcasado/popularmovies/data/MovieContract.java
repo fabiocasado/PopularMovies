@@ -22,6 +22,9 @@ public class MovieContract {
     // Path (appended to base content URI) for querying trailer data
     public static final String PATH_TRAILER = "trailer";
 
+    // Path (appended to base content URI) for querying review data
+    public static final String PATH_REVIEW = "review";
+
     /* Inner class that defines the table contents of the movie table */
     public static final class MovieEntry implements BaseColumns {
 
@@ -57,7 +60,7 @@ public class MovieContract {
         // Movie popularity
         public static final String COLUMN_POPULARITY = "popularity";
 
-        public static Uri buildMovieUri(long id) {
+        public static Uri buildUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
@@ -76,13 +79,39 @@ public class MovieContract {
         // Table name
         public static final String TABLE_NAME = "trailer";
 
-        // Movie id to related trailer with movie
-        public static final String COLUMND_MOVIE_ID = "movieId";
+        // Movie id to relat trailer with movie
+        public static final String COLUMN_MOVIE_ID = "movieId";
 
         // Trailer movie key for youtube URL
         public static final String COLUMN_VIDEO_KEY = "videKey";
 
-        public static Uri buildTrailerUri(long id) {
+        public static Uri buildUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
+    /* Inner class that defines the table contents of the review table */
+    public static final class ReviewEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW)
+                .build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                + CONTENT_AUTHORITY + "/" + PATH_REVIEW;
+
+        // Table name
+        public static final String TABLE_NAME = "review";
+
+        // Movie id to relat review with movie
+        public static final String COLUMN_MOVIE_ID = "movieId";
+
+        // Review author
+        public static final String COLUMN_AUTHOR = "author";
+
+        // Review content
+        public static final String COLUMN_CONTENT = "content";
+
+        public static Uri buildUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }

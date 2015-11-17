@@ -37,8 +37,8 @@ import java.util.Vector;
 
 public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
     // Interval at which to sync with the weather, in milliseconds.
-    // 60 seconds (1 minute) * 180 = 3 hours
-    public static final int SYNC_INTERVAL = 60 * 1000 * 180;
+    // 60 seconds (1 minute) * 360 = 6 hours
+    public static final int SYNC_INTERVAL = 60 * 1000 * 360;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
 
     public final String LOG_TAG = MovieSyncAdapter.class.getSimpleName();
@@ -143,7 +143,8 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("Sync started.");
 
         syncDiscoverMoviesData();
-        syncDetailMoviesData();
+        syncTrailerMoviesData();
+        syncReviewMoviesData();
 
         Timber.d("Sync finished.");
     }
@@ -188,14 +189,14 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
 
             getMovieDataFromJson(movieJsonStr);
         } catch (IOException e) {
-            Timber.e(e, "Error");
+            Timber.e(e, "Error retrieving movie data");
             // If the code didn't successfully get the movie data, there's no point in
             // attempting
             // to parse it.
         }
     }
 
-    private void syncDetailMoviesData() {
+    private void syncTrailerMoviesData() {
         // Will contain the raw JSON response as a string.
         String movieJsonStr;
 
@@ -230,8 +231,52 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 getTrailerDataFromJson(movieJsonStr, movieID);
             } catch (IOException e) {
-                Timber.e(e, "Error");
+                Timber.e(e, "Error retrieving trailer data");
                 // If the code didn't successfully get the trailer data, there's no point in
+                // attempting
+                // to parse it.
+            }
+        }
+
+    }
+
+    private void syncReviewMoviesData() {
+        // Will contain the raw JSON response as a string.
+        String movieJsonStr;
+
+        // First we check to see if we actually have movies
+        Cursor movieCursor = getContext().getContentResolver()
+                .query(MovieContract.MovieEntry.CONTENT_URI, new String[] {
+                        MovieContract.MovieEntry._ID
+        }, null, null, null);
+        if (movieCursor.getCount() == 0)
+            return;
+
+        // If we have movies, loop through them fetching trailers & reviews
+        while (movieCursor.moveToNext()) {
+            try {
+                long movieID = movieCursor.getLong(0);
+
+                // Initialize uri builder
+                Uri.Builder uriBuilder = Uri.parse(MovieAPI.buildMovieReviewEndpointUri(movieID))
+                        .buildUpon();
+
+                // Now append key and build URL for the MovieDbApi query
+                Uri builtUri = uriBuilder
+                        .appendQueryParameter(MovieAPI.API_PARAM_KEY, BuildConfig.MOVIE_DB_API_KEY)
+                        .build();
+                URL url = new URL(builtUri.toString());
+
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder().url(url).build();
+
+                Response response = client.newCall(request).execute();
+                movieJsonStr = response.body().string();
+
+                getReviewDataFromJson(movieJsonStr, movieID);
+            } catch (IOException e) {
+                Timber.e(e, "Error retrieving review data");
+                // If the code didn't successfully get the review data, there's no point in
                 // attempting
                 // to parse it.
             }
@@ -317,7 +362,7 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 ContentValues trailerValues = new ContentValues();
                 trailerValues.put(MovieContract.TrailerEntry.COLUMN_VIDEO_KEY, key);
-                trailerValues.put(MovieContract.TrailerEntry.COLUMND_MOVIE_ID, movieId);
+                trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, movieId);
 
                 cVVector.add(trailerValues);
 
@@ -328,10 +373,9 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
             // old trailers which are no longer available
             int deleted = getContext().getContentResolver().delete(
                     MovieContract.TrailerEntry.CONTENT_URI,
-                    MovieContract.TrailerEntry.COLUMND_MOVIE_ID + " =?", new String[] {
+                    MovieContract.TrailerEntry.COLUMN_MOVIE_ID + " =?", new String[] {
                             String.valueOf(movieId)
             });
-            Timber.d("Deleting old trailers before insert. " + deleted + " trailers deleted");
 
             int inserted = 0;
             // add to database
@@ -341,6 +385,57 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                 inserted = getContext().getContentResolver()
                         .bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
             }
+
+            Timber.d(inserted + " trailers inserted for movie: " + movieId);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getReviewDataFromJson(String reviewJsonStr, long movieId) {
+        try {
+            JSONObject resultsObject = new JSONObject(reviewJsonStr);
+            JSONArray reviewArray = resultsObject.optJSONArray(MovieAPI.RESULTS_MOVIE_TRAILER);
+            if (reviewArray == null)
+                return;
+
+            // Insert the new trailer information into the database
+            Vector<ContentValues> cVVector = new Vector<ContentValues>(reviewArray.length());
+
+            int reviewCount = reviewArray.length();
+            for (int i = 0; i < reviewCount; i++) {
+                JSONObject review = reviewArray.getJSONObject(i);
+                String author = review.getString(MovieAPI.REVIEW_AUTHOR);
+                String content = review.getString(MovieAPI.REVIEW_CONTENT);
+
+                ContentValues reviewValues = new ContentValues();
+                reviewValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID, movieId);
+                reviewValues.put(MovieContract.ReviewEntry.COLUMN_AUTHOR, author);
+                reviewValues.put(MovieContract.ReviewEntry.COLUMN_CONTENT, content);
+
+                cVVector.add(reviewValues);
+            }
+
+            // Before insertion, we delete old records just in case, since we may end up with
+            // old reviews which are no longer available or have been modified
+            int deleted = getContext().getContentResolver().delete(
+                    MovieContract.ReviewEntry.CONTENT_URI,
+                    MovieContract.ReviewEntry.COLUMN_MOVIE_ID + " =?", new String[] {
+                            String.valueOf(movieId)
+            });
+            Timber.d("Deleting old reviews before insert. " + deleted + " reviews deleted");
+
+            int inserted = 0;
+            // add to database
+            if (cVVector.size() > 0) {
+                ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                cVVector.toArray(cvArray);
+                inserted = getContext().getContentResolver()
+                        .bulkInsert(MovieContract.ReviewEntry.CONTENT_URI, cvArray);
+            }
+
+            Timber.d(inserted + " reviews inserted for movie: " + movieId);
 
         } catch (JSONException e) {
             e.printStackTrace();

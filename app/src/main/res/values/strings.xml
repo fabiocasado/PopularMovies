@@ -24,7 +24,7 @@
     <string name="sort_most_popular" translatable="false">popular</string>
     <string name="sort_highest_rated" translatable="false">rated</string>
     <string name="movie_poster_uri" translatable="false">http://image.tmdb.org/t/p/w185/</string>
-    <string name="transition_image" translatable="false">transition_image</string>
+    <string name="title_activity_review">ReviewActivity</string>
 
 
 </resources>

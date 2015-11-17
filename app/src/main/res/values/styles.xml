@@ -12,4 +12,13 @@
     <style name="PopularMoviesTheme" parent="AppTheme">
     </style>
 
+    <style name="PopularMoviesTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="PopularMoviesTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    <style name="PopularMoviesTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+
 </resources>
