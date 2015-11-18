@@ -8,10 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
+
+import com.squareup.picasso.Picasso;
+
 import timber.log.Timber;
 
 /**
@@ -70,7 +71,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         return mCursor;
     }
 
-    public static interface MovieAdapterOnClickHandler {
+    public interface MovieAdapterOnClickHandler {
         void onClick(long movieId, MovieAdapterViewHolder viewHolder);
     }
 

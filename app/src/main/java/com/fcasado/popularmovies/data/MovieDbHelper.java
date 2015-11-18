@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.fcasado.popularmovies.data.MovieContract.FavoriteEntry;
 import com.fcasado.popularmovies.data.MovieContract.MovieEntry;
 import com.fcasado.popularmovies.data.MovieContract.ReviewEntry;
 import com.fcasado.popularmovies.data.MovieContract.TrailerEntry;
@@ -30,6 +31,14 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 + MovieEntry.COLUMN_RELEASE_DATE + " TEXT, " + MovieEntry.COLUMN_USER_RATING
                 + " REAL, " + MovieEntry.COLUMN_POPULARITY + " REAL " + ");";
 
+        final String SQL_CREATE_FAVORITE_TABLE = "CREATE TABLE " + FavoriteEntry.TABLE_NAME + " ("
+                + FavoriteEntry._ID + " INTEGER PRIMARY KEY," + FavoriteEntry.COLUMN_TITLE
+                + " TEXT NOT NULL, " + FavoriteEntry.COLUMN_ORIGINAL_TITLE + " TEXT NOT NULL, "
+                + FavoriteEntry.COLUMN_OVERVIEW + " TEXT, " + FavoriteEntry.COLUMN_POSTER_PATH
+                + " TEXT, " + FavoriteEntry.COLUMN_RELEASE_DATE + " TEXT, "
+                + FavoriteEntry.COLUMN_USER_RATING + " REAL, " + FavoriteEntry.COLUMN_POPULARITY
+                + " REAL " + ");";
+
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + TrailerEntry.TABLE_NAME + " ("
                 + TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + TrailerEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, "
@@ -41,6 +50,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 + " TEXT NOT NULL, " + ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL " + " );";
 
         db.execSQL(SQL_CREATE_MOVIE_TABLE);
+        db.execSQL(SQL_CREATE_FAVORITE_TABLE);
         db.execSQL(SQL_CREATE_TRAILER_TABLE);
         db.execSQL(SQL_CREATE_REVIEW_TABLE);
     }
@@ -48,8 +58,10 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // This database is only a cache for online data, so simply discard the data and start over
-        // on each upgrade.
+        // on each upgrade. In future, favorite data should be treated different if we change the
+        // table structure.
         db.execSQL("DROP TABLE IF EXISTS " + MovieEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + FavoriteEntry.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + TrailerEntry.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + ReviewEntry.TABLE_NAME);
         onCreate(db);

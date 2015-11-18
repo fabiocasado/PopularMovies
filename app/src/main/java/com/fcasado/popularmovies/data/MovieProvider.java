@@ -17,8 +17,10 @@ import android.net.Uri;
 public class MovieProvider extends ContentProvider {
     private static final int MOVIE = 100;
     private static final int MOVIE_WITH_ID = 101;
-    private static final int TRAILER = 200;
-    private static final int REVIEW = 300;
+    private static final int FAVORITE = 200;
+    private static final int FAVORITE_WITH_ID = 201;
+    private static final int TRAILER = 300;
+    private static final int REVIEW = 400;
 
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -32,6 +34,8 @@ public class MovieProvider extends ContentProvider {
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, MovieContract.PATH_MOVIE, MOVIE);
         matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_WITH_ID);
+        matcher.addURI(authority, MovieContract.PATH_FAVORITE, FAVORITE);
+        matcher.addURI(authority, MovieContract.PATH_FAVORITE + "/#", FAVORITE_WITH_ID);
         matcher.addURI(authority, MovieContract.PATH_TRAILER, TRAILER);
         matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
         return matcher;
@@ -53,6 +57,10 @@ public class MovieProvider extends ContentProvider {
                 return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
             case MOVIE:
                 return MovieContract.MovieEntry.CONTENT_TYPE;
+            case FAVORITE_WITH_ID:
+                return MovieContract.FavoriteEntry.CONTENT_ITEM_TYPE;
+            case FAVORITE:
+                return MovieContract.FavoriteEntry.CONTENT_TYPE;
             case TRAILER:
                 return MovieContract.TrailerEntry.CONTENT_TYPE;
             case REVIEW:
@@ -81,6 +89,25 @@ public class MovieProvider extends ContentProvider {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.MovieEntry.TABLE_NAME, projection,
                         MovieContract.MovieEntry._ID + " = ?", new String[] {
+                                String.valueOf(id)
+                }, null, null, null);
+                break;
+            }
+
+                // "favorite"
+            case FAVORITE: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        MovieContract.FavoriteEntry.TABLE_NAME, projection, selection,
+                        selectionArgs, null, null, sortOrder);
+                break;
+            }
+                // "movie/#"
+            case FAVORITE_WITH_ID: {
+                long id = ContentUris.parseId(uri);
+
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        MovieContract.FavoriteEntry.TABLE_NAME, projection,
+                        MovieContract.FavoriteEntry._ID + " = ?", new String[] {
                                 String.valueOf(id)
                 }, null, null, null);
                 break;
@@ -123,6 +150,15 @@ public class MovieProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case FAVORITE: {
+                long _id = db.insertWithOnConflict(MovieContract.FavoriteEntry.TABLE_NAME, null,
+                        values, SQLiteDatabase.CONFLICT_REPLACE);
+                if (_id > 0)
+                    returnUri = MovieContract.FavoriteEntry.buildUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
             case TRAILER: {
                 long _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, values);
                 if (_id > 0)
@@ -155,6 +191,9 @@ public class MovieProvider extends ContentProvider {
         switch (match) {
             case MOVIE:
                 tableName = MovieContract.MovieEntry.TABLE_NAME;
+                break;
+            case FAVORITE:
+                tableName = MovieContract.FavoriteEntry.TABLE_NAME;
                 break;
             case TRAILER:
                 tableName = MovieContract.TrailerEntry.TABLE_NAME;
@@ -200,6 +239,9 @@ public class MovieProvider extends ContentProvider {
             case MOVIE:
                 tableName = MovieContract.MovieEntry.TABLE_NAME;
                 break;
+            case FAVORITE:
+                tableName = MovieContract.FavoriteEntry.TABLE_NAME;
+                break;
             case TRAILER:
                 tableName = MovieContract.TrailerEntry.TABLE_NAME;
                 break;
@@ -233,6 +275,9 @@ public class MovieProvider extends ContentProvider {
         switch (match) {
             case MOVIE:
                 tableName = MovieContract.MovieEntry.TABLE_NAME;
+                break;
+            case FAVORITE:
+                tableName = MovieContract.FavoriteEntry.TABLE_NAME;
                 break;
             case TRAILER:
                 tableName = MovieContract.TrailerEntry.TABLE_NAME;

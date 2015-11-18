@@ -19,6 +19,9 @@ public class MovieContract {
     // Path (appended to base content URI) for querying movie data
     public static final String PATH_MOVIE = "movie";
 
+    // Path (appended to base content URI) for querying favorite data
+    public static final String PATH_FAVORITE = "favorite";
+
     // Path (appended to base content URI) for querying trailer data
     public static final String PATH_TRAILER = "trailer";
 
@@ -65,6 +68,50 @@ public class MovieContract {
         }
     }
 
+    /*
+     * Inner class that defines the table contents of the favorite table This table is an exact copy
+     * of movie table, but we want to keep it separate to better handle favorite movies and avoid
+     * loosing its data
+     */
+    public static final class FavoriteEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_FAVORITE)
+                .build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/"
+                + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
+
+        // Table name
+        public static final String TABLE_NAME = "favorite";
+
+        // Movie title string
+        public static final String COLUMN_TITLE = "title";
+
+        // Movie original title
+        public static final String COLUMN_ORIGINAL_TITLE = "originalTitle";
+
+        // Movie overview
+        public static final String COLUMN_OVERVIEW = "overview";
+
+        // Movie poster path
+        public static final String COLUMN_POSTER_PATH = "posterPath";
+
+        // Movie user rating
+        public static final String COLUMN_USER_RATING = "voteAverage";
+
+        // Movie release date
+        public static final String COLUMN_RELEASE_DATE = "releaseDate";
+
+        // Movie popularity
+        public static final String COLUMN_POPULARITY = "popularity";
+
+        public static Uri buildUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
     /* Inner class that defines the table contents of the trailer table */
     public static final class TrailerEntry implements BaseColumns {
 
@@ -72,8 +119,6 @@ public class MovieContract {
                 .build();
 
         public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
-                + CONTENT_AUTHORITY + "/" + PATH_TRAILER;
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/"
                 + CONTENT_AUTHORITY + "/" + PATH_TRAILER;
 
         // Table name

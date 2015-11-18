@@ -26,6 +26,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.sync.FavoriteQueryHandler;
 import com.fcasado.popularmovies.views.EllipzisingTextView;
 import com.squareup.picasso.Picasso;
 
@@ -34,7 +35,8 @@ import timber.log.Timber;
 /**
  * Shows movie details UI. Received movie URI in arguments.
  */
-public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        FavoriteQueryHandler.OnInsertCompleteListener {
 
     static final String DETAIL_URI = "URI";
 
@@ -110,7 +112,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             startActivity(intent);
         }
     };
+
     private boolean isFav;
+    private FavoriteQueryHandler mFavoriteQueryHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -141,6 +145,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+
+        mFavoriteQueryHandler = new FavoriteQueryHandler(getActivity().getContentResolver(), this);
+
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
         getLoaderManager().initLoader(TRAILER_LOADER, null, this);
         getLoaderManager().initLoader(REVIEW_LOADER, null, this);
@@ -155,14 +162,34 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         inflater.inflate(R.menu.detail_fragment, menu);
 
         mFavItem = menu.findItem(R.id.action_favorite);
+        mFavItem.setVisible(mUri != null);
+
+        // For simplicity, and since its a short call, we are calling this here, but it should
+        // me
+        // moved to FavoriteQueryHandler or similar
+        if (mFavItem.isVisible()) {
+            Cursor favoriteCursor = getActivity().getContentResolver()
+                    .query(MovieContract.FavoriteEntry.CONTENT_URI, new String[] {
+                            MovieContract.FavoriteEntry._ID
+            }, MovieContract.FavoriteEntry._ID + " = ?", new String[] {
+                    String.valueOf(ContentUris.parseId(mUri))
+            }, null);
+            if (favoriteCursor.getCount() > 0) {
+                mFavItem.setIcon(R.drawable.ic_fav_on);
+                isFav = true;
+            }
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_favorite) {
+            Timber.d("Fav clicked");
             if (isFav) {
+                mFavoriteQueryHandler.removeMovieFromFavorites(ContentUris.parseId(mUri));
                 mFavItem.setIcon(R.drawable.ic_fav_off);
             } else {
+                mFavoriteQueryHandler.addMovieToFavorites(ContentUris.parseId(mUri));
                 mFavItem.setIcon(R.drawable.ic_fav_on);
             }
 
@@ -320,5 +347,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+
+    @Override
+    public void onInsertComplete(Uri uri) {
+        Timber.d("Added movie as favorite: " + uri);
     }
 }

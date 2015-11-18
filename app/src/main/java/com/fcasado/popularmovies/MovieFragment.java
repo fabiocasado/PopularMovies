@@ -103,14 +103,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 if (!Utilities.isConnected(getActivity())) {
                     Utilities.presentOfflineDialog(getActivity());
 
-//                    // If we were trying to do a new fetch, but we are offline, we still delete old
-//                    // records,
-//                    // since some images and data may not be there, thus creating a weird/bad UX
-//                    int deleted = getActivity().getContentResolver()
-//                            .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-//                    Timber.d("No internet connection on refresh. Deleting old data to avoid bad UX. "
-//                            + deleted + " deleted");
-
                     mSwipeRefreshLayout.setRefreshing(false);
                     return;
                 }
