@@ -1,4 +1,5 @@
-package com.fcasado.popularmovies;
+
+package com.fcasado.popularmovies.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -11,9 +12,9 @@ import android.widget.ImageView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
+import com.fcasado.popularmovies.MovieFragment;
+import com.fcasado.popularmovies.R;
 import com.squareup.picasso.Picasso;
-
-import timber.log.Timber;
 
 /**
  * Loads ui content from {@link Cursor} and implements ViewHolder pattern for performance. Loads
@@ -34,7 +35,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
 
     @Override
     public MovieAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_item_movie, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_item_movie,
+                parent, false);
         view.setFocusable(true);
 
         return new MovieAdapterViewHolder(view);
@@ -48,14 +50,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         if (portraitPath != null && portraitPath.length() > 0) {
             portraitPath = mContext.getString(R.string.movie_poster_uri).concat(portraitPath);
             Picasso.with(mContext).load(portraitPath).placeholder(R.drawable.ic_poster)
-                    .error(R.drawable.ic_poster_details_error)
-                    .into(holder.posterView);
+                    .error(R.drawable.ic_poster_details_error).into(holder.posterView);
         }
     }
 
     @Override
     public int getItemCount() {
-        if (mCursor == null) return 0;
+        if (mCursor == null)
+            return 0;
         return mCursor.getCount();
     }
 
@@ -63,8 +65,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         mCursor = newCursor;
         notifyDataSetChanged();
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
-
-        Timber.d("SwapCursor: " + getItemCount());
     }
 
     public Cursor getCursor() {
@@ -78,7 +78,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     /**
      * Cache of the children views for a movie list item.
      */
-    public class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class MovieAdapterViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
         @Bind(R.id.poster_imageview)
         ImageView posterView;
 
@@ -94,7 +95,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
             mCursor.moveToPosition(adapterPosition);
             mClickHandler.onClick(mCursor.getLong(MovieFragment.COL_MOVIE_ID), this);
         }
-    }
 
+        public ImageView getPosterView() {
+            return posterView;
+        }
+    }
 
 }

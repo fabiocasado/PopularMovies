@@ -7,6 +7,7 @@
     <string name="pref_sort_title">Sort by</string>
     <string name="sort_label_most_popular">Most popular</string>
     <string name="sort_label_highest_rated">Highest rated</string>
+    <string name="sort_label_favorite">Favorite</string>
 
 
     <string name="no_connection_message">Your internet connection appears to be down. Please double-check your connection.</string>
@@ -23,6 +24,7 @@
     <string name="pref_sort_default" translatable="false">@string/sort_most_popular</string>
     <string name="sort_most_popular" translatable="false">popular</string>
     <string name="sort_highest_rated" translatable="false">rated</string>
+    <string name="sort_favorite" translatable="false">favorite</string>
     <string name="movie_poster_uri" translatable="false">http://image.tmdb.org/t/p/w185/</string>
     <string name="title_activity_review">ReviewActivity</string>
 

@@ -108,7 +108,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(getActivity(), ReviewsActivity.class);
-            intent.putExtra(DetailFragment.DETAIL_URI, mUri);
+            intent.putExtra(ReviewsFragment.MOVIE_ID, ContentUris.parseId(mUri));
             startActivity(intent);
         }
     };
@@ -129,6 +129,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+            Timber.d("Uri: " + mUri);
         }
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);

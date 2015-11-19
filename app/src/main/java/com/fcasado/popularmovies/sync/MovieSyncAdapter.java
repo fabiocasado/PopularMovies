@@ -324,7 +324,6 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
             // movies which data is never updated
             int deleted = getContext().getContentResolver()
                     .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-            Timber.d("Deleting old data before insert. " + deleted + " deleted");
 
             int inserted = 0;
             // add to database
@@ -334,6 +333,8 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                 inserted = getContext().getContentResolver()
                         .bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);
             }
+
+            Timber.d(inserted + " movie data");
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -365,8 +366,6 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                 trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, movieId);
 
                 cVVector.add(trailerValues);
-
-                Timber.d("Added trailer for movie: " + movieId + ", with key: " + key);
             }
 
             // Before insertion, we delete old records just in case, since we may end up with
@@ -424,7 +423,6 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                     MovieContract.ReviewEntry.COLUMN_MOVIE_ID + " =?", new String[] {
                             String.valueOf(movieId)
             });
-            Timber.d("Deleting old reviews before insert. " + deleted + " reviews deleted");
 
             int inserted = 0;
             // add to database

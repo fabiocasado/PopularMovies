@@ -1,3 +1,4 @@
+
 package com.fcasado.popularmovies;
 
 import android.content.SharedPreferences;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
+import com.fcasado.popularmovies.adapters.MovieAdapter;
 import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.sync.MovieSyncAdapter;
 import com.fcasado.popularmovies.utils.Utilities;
@@ -34,12 +36,17 @@ import timber.log.Timber;
  */
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
-    static final int COL_MOVIE_ID = 0;
-    static final int COL_POSTER_PATH = 1;
+    public static final int COL_MOVIE_ID = 0;
+    public static final int COL_POSTER_PATH = 1;
 
     // On gridView we only need movie poster.
     private static final String[] MOVIE_COLUMNS = {
             MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_POSTER_PATH
+    };
+
+    // On gridView we only need favorite poster.
+    private static final String[] FAVORITE_COLUMNS = {
+            MovieContract.FavoriteEntry._ID, MovieContract.FavoriteEntry.COLUMN_POSTER_PATH
     };
 
     private static final String TAG_FETCH_MOVIE = "tagFetchMovie";
@@ -64,8 +71,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
+            Bundle savedInstanceState) {
         // Restore saved values if available
         if (savedInstanceState != null) {
             mSelectedPosition = savedInstanceState.getInt(SELECTED_POSITION,
@@ -75,22 +82,28 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
 
-        mMovieAdapter = new MovieAdapter(getActivity(), new MovieAdapter.MovieAdapterOnClickHandler() {
-            @Override
-            public void onClick(long movieId, MovieAdapter.MovieAdapterViewHolder viewHolder) {
-                ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
-                                MovieContract.MovieEntry.buildUri(movieId),
-                        viewHolder.posterView);
+        mMovieAdapter = new MovieAdapter(getActivity(),
+                new MovieAdapter.MovieAdapterOnClickHandler() {
+                    @Override
+                    public void onClick(long movieId,
+                            MovieAdapter.MovieAdapterViewHolder viewHolder) {
+                        Uri contentUri = MovieContract.MovieEntry.buildUri(movieId);
+                        if (mSortByValue.compareTo(getString(R.string.sort_favorite)) == 0) {
+                            contentUri = MovieContract.FavoriteEntry.buildUri(movieId);
+                        }
 
-                mSelectedPosition = viewHolder.getAdapterPosition();
-            }
-        }, mEmptyView);
+                        ((OnMovieItemSelected) getActivity()).onMovieItemSelected(contentUri,
+                                viewHolder.getPosterView());
 
+                        mSelectedPosition = viewHolder.getAdapterPosition();
+                    }
+                }, mEmptyView);
 
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), getResources().getInteger(R.integer.grid_columns)));
-        mRecyclerView.setHasFixedSize(true); // Improves performance, since size of content won't change
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
+                getResources().getInteger(R.integer.grid_columns)));
+        mRecyclerView.setHasFixedSize(true); // Improves performance, since size of content won't
+                                             // change
         mRecyclerView.setAdapter(mMovieAdapter);
-
 
         SharedPreferences preferences = PreferenceManager
                 .getDefaultSharedPreferences(getActivity());
@@ -133,11 +146,13 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         if (mSortByValue.compareTo(prefSortBy) != 0) {
             mSortByValue = prefSortBy;
 
-            // If we were trying to do a new fetch with different sorting criteria, we delete old records
-            int deleted = getActivity().getContentResolver()
-                    .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-            Timber.d("Sorting criteria changed. Deleting old data. " + deleted
-                    + " deleted");
+            // If we were trying to do a new fetch with different sorting criteria, we delete old
+            // records
+            if (mSortByValue.compareTo(getString(R.string.sort_favorite)) != 0) {
+                int deleted = getActivity().getContentResolver()
+                        .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
+                Timber.d("Sorting criteria changed. Deleting old data. " + deleted + " deleted");
+            }
 
             refreshContent();
             getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
@@ -147,7 +162,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private void refreshContent() {
         if (!Utilities.isConnected(getActivity())) {
             Utilities.presentOfflineDialog(getActivity());
-
 
             return;
         }
@@ -175,7 +189,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     /**
      * Tells the fragment to activate smooth scrolling to selected item on rotate/similar events.
      *
-     * @param shouldScrollToSelectedItem whether the fragment should scroll to selected item or not
+     * @param shouldScrollToSelectedItem
+     *            whether the fragment should scroll to selected item or not
      */
     public void setShouldScrollToSelectedItem(boolean shouldScrollToSelectedItem) {
         mShouldScrollToSelectedItem = shouldScrollToSelectedItem;
@@ -186,8 +201,14 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         // This is called when a new Loader needs to be created. This
         // fragment only uses one loader, so we don't care about checking the id.
 
+        // If we want favorites, we query different uri
+        if (mSortByValue.compareTo(getString(R.string.sort_favorite)) == 0) {
+            return new CursorLoader(getActivity(), MovieContract.FavoriteEntry.CONTENT_URI,
+                    FAVORITE_COLUMNS, null, null, null);
+        }
+
         String sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC";
-        if (mSortByValue.equalsIgnoreCase(getString(R.string.sort_highest_rated))) {
+        if (mSortByValue.compareTo(getString(R.string.sort_highest_rated)) == 0) {
             sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC";
         }
 
@@ -205,8 +226,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
         mSwipeRefreshLayout.setRefreshing(false);
 
-        if (data.getCount() == 0) {
-            // If empty data, start new sync
+        if (data.getCount() == 0
+                && mSortByValue.compareTo(getString(R.string.sort_favorite)) != 0) {
+            // If empty data, and not showing favorite, start new sync
+            Timber.d("Starting sync from movieFragment");
             MovieSyncAdapter.syncImmediately(getActivity());
         }
     }

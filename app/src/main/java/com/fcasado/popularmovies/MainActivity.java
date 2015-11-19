@@ -10,8 +10,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.fcasado.popularmovies.sync.MovieSyncAdapter;
-
 public class MainActivity extends AppCompatActivity implements MovieFragment.OnMovieItemSelected {
 
     private static final String TAG_MOVIE_DETAIL = "tagMovieDetail";
@@ -50,9 +48,6 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
         if (movieFrag != null) {
             movieFrag.setShouldScrollToSelectedItem(mTwoPane);
         }
-
-        // Start first sync
-        MovieSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
