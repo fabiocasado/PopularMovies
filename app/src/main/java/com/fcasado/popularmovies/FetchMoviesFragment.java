@@ -3,30 +3,31 @@ package com.fcasado.popularmovies;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 
-import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.data.Movie;
 import com.fcasado.popularmovies.utils.Utilities;
 
-import timber.log.Timber;
+import java.util.List;
 
 /**
- * Ui-less fragment used to contain {@link FetchMovieTask} in order to avoid leaks from multiple
+ * Ui-less fragment used to contain {@link FetchMoviesTask} in order to avoid leaks from multiple
  * tasks running due to activity recreation.
  */
-public class FetchMovieFragment extends Fragment
-        implements FetchMovieTask.OnMovieDataFetchFinished {
-    private FetchMovieTask mTask;
+public class FetchMoviesFragment extends Fragment
+        implements FetchMoviesTask.OnMovieDataFetchFinished {
+    private FetchMoviesTask mTask;
     private boolean mIsTaskFinished;
+    private FetchMoviesTask.OnMovieDataFetchFinished mMovieDataListener;
+    private List<Movie> mMovies;
+
+    public void setOnMovieDataFetchListener(FetchMoviesTask.OnMovieDataFetchFinished listener) {
+        mMovieDataListener = listener;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
-        // When starting the app, we delete old content since we are going to fetch updated one
-        getActivity().getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-        Timber.d("Content in DB deleted");
     }
 
     @Override
@@ -39,10 +40,18 @@ public class FetchMovieFragment extends Fragment
     }
 
     @Override
-    public void onMovieDataFetchFinished() {
+    public void onMovieDataFetchFinished(List<Movie> movies) {
         // Do we need to clear the task context reference?
         mIsTaskFinished = true;
         mTask = null;
+        mMovies = movies;
+        if (mMovieDataListener != null) {
+            mMovieDataListener.onMovieDataFetchFinished(movies);
+        }
+    }
+
+    public List<Movie> getMovieData() {
+        return mMovies;
     }
 
     /**
@@ -53,18 +62,12 @@ public class FetchMovieFragment extends Fragment
         if (!Utilities.isConnected(getActivity())) {
             Utilities.presentOfflineDialog(getActivity());
 
-            // If we were trying to do a new fetch, but we are offline, we still delete old records,
-            // since some images and data may not be there, thus creating a weird/bad UX
-            int deleted = getActivity().getContentResolver()
-                    .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-            Timber.d("No internet connection. Deleting old data to avoid bad UX. " + deleted
-                    + " deleted");
             return;
         }
 
         if (mTask == null) {
             mIsTaskFinished = false;
-            mTask = new FetchMovieTask(getActivity(), this);
+            mTask = new FetchMoviesTask(getActivity(), this);
             mTask.execute();
         }
     }

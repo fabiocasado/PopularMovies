@@ -9,30 +9,33 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ListView;
-
-import com.fcasado.popularmovies.data.MovieContract;
-import com.fcasado.popularmovies.utils.Utilities;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+
+import com.fcasado.popularmovies.data.Movie;
+import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.utils.Utilities;
+
 import timber.log.Timber;
+
+import java.util.List;
 
 /**
  * Shows movie list ui. If we are in two pane mode, it automatically scrolls to selected movie on
- * screen rotation or similar events. It contains the {@link FetchMovieFragment} to handle Movie API
- * data query.
+ * screen rotation or similar events. It contains the {@link FetchMoviesFragment} to handle Movie
+ * API data query.
  */
-public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MovieFragment extends Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor>, FetchMoviesTask.OnMovieDataFetchFinished {
     // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
     static final int COL_POSTER_PATH = 1;
 
@@ -46,14 +49,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private static final String SELECTED_POSITION = "selectedPosition";
     private static final int MOVIE_LOADER_ID = 100;
 
-    @Bind(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
-    @Bind(R.id.gridview) GridView mGridView;
+    @Bind(R.id.swipe_refresh_layout)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.recyclerview)
+    RecyclerView mRecyclerView;
 
-    private FetchMovieFragment mFetchMovieFragment;
+    private FetchMoviesFragment mFetchMoviesFragment;
     private MovieAdapter mMovieAdapter;
 
     private boolean mShouldScrollToSelectedItem;
-    private int mSelectedPosition = GridView.INVALID_POSITION;
+    private int mSelectedPosition = RecyclerView.NO_POSITION;
     private String mSortByValue;
 
     public MovieFragment() {
@@ -62,9 +67,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-
-        mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
-
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
 
@@ -74,43 +76,24 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 if (!Utilities.isConnected(getActivity())) {
                     Utilities.presentOfflineDialog(getActivity());
 
-                    // If we were trying to do a new fetch, but we are offline, we still delete old
-                    // records,
-                    // since some images and data may not be there, thus creating a weird/bad UX
-                    int deleted = getActivity().getContentResolver()
-                            .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-                    Timber.d("No internet connection on refresh. Deleting old data to avoid bad UX. "
-                                    + deleted + " deleted");
-
                     mSwipeRefreshLayout.setRefreshing(false);
                     return;
                 }
 
                 // Reset current item since we are refreshing data
-                mSelectedPosition = GridView.INVALID_POSITION;
-                mFetchMovieFragment.refreshContent();
+                mSelectedPosition = RecyclerView.NO_POSITION;
+                mFetchMoviesFragment.refreshContent();
                 mSwipeRefreshLayout.setRefreshing(true);
             }
         });
 
-        mGridView.setAdapter(mMovieAdapter);
-        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
-                    ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
-                            MovieContract.MovieEntry.buildMovieUri(id),
-                            view.findViewById(R.id.poster_imageview));
-                }
-                mSelectedPosition = position;
-            }
-        });
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
+                getResources().getInteger(R.integer.grid_columns)));
 
         // Restore saved values if available
         if (savedInstanceState != null) {
             mSelectedPosition = savedInstanceState.getInt(SELECTED_POSITION,
-                    GridView.INVALID_POSITION);
+                    RecyclerView.NO_POSITION);
         }
 
         SharedPreferences preferences = PreferenceManager
@@ -136,8 +119,9 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 getString(R.string.sort_most_popular));
         if (mSortByValue.compareTo(prefSortBy) != 0) {
             mSortByValue = prefSortBy;
-            mFetchMovieFragment.refreshContent();
-            getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            mFetchMoviesFragment.refreshContent();
+            mMovieAdapter.setMovies(null);
+            // getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
         }
     }
 
@@ -146,17 +130,32 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         FragmentManager fm = getFragmentManager();
 
         // Check to see if we have retained the movie data fetching fragment.
-        mFetchMovieFragment = (FetchMovieFragment) fm.findFragmentByTag(TAG_FETCH_MOVIE);
+        mFetchMoviesFragment = (FetchMoviesFragment) fm.findFragmentByTag(TAG_FETCH_MOVIE);
 
         // If not retained (or first time running), we need to create it.
-        if (mFetchMovieFragment == null) {
-            mFetchMovieFragment = new FetchMovieFragment();
+        if (mFetchMoviesFragment == null) {
+            Timber.d("create fetch movie fragment");
+            mFetchMoviesFragment = new FetchMoviesFragment();
+            mFetchMoviesFragment.setOnMovieDataFetchListener(this);
             // Tell it who it is working with.
-            mFetchMovieFragment.setTargetFragment(this, 0);
-            fm.beginTransaction().add(mFetchMovieFragment, TAG_FETCH_MOVIE).commit();
+            mFetchMoviesFragment.setTargetFragment(this, 0);
+            fm.beginTransaction().add(mFetchMoviesFragment, TAG_FETCH_MOVIE).commit();
         }
 
-        getLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+        mMovieAdapter = new MovieAdapter(getActivity(), mFetchMoviesFragment.getMovieData(),
+                new MovieAdapter.MovieAdapterOnClickListener() {
+                    @Override
+                    public void onClick(Movie movie, int position) {
+                        ((MainActivity) getActivity()).onMovieItemSelected(movie);
+                        mSelectedPosition = position;
+                    }
+                });
+        mRecyclerView.setAdapter(mMovieAdapter);
+        if (mSelectedPosition != RecyclerView.NO_POSITION && mShouldScrollToSelectedItem) {
+            mRecyclerView.smoothScrollToPosition(mSelectedPosition);
+        }
+
+        // getLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -183,42 +182,61 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // This is called when a new Loader needs to be created. This
-        // fragment only uses one loader, so we don't care about checking the id.
-
-        String sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC";
-        if (mSortByValue.equalsIgnoreCase(getString(R.string.sort_highest_rated))) {
-            sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC";
-        }
-
-        return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI, MOVIE_COLUMNS,
-                null, null, sortOrder);
+        // // This is called when a new Loader needs to be created. This
+        // // fragment only uses one loader, so we don't care about checking the id.
+        //
+        // String sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC";
+        // if (mSortByValue.equalsIgnoreCase(getString(R.string.sort_highest_rated))) {
+        // sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC";
+        // }
+        //
+        // return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI,
+        // MOVIE_COLUMNS,
+        // null, null, sortOrder);
+        return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mMovieAdapter.swapCursor(data);
-        if (mSelectedPosition != ListView.INVALID_POSITION && mShouldScrollToSelectedItem) {
-            // If there's a desired position to restore to, do so now.
-            mGridView.smoothScrollToPosition(mSelectedPosition);
-        }
-
-        mSwipeRefreshLayout.setRefreshing(false);
+        // mMovieAdapter.swapCursor(data);
+        // if (mSelectedPosition != ListView.INVALID_POSITION && mShouldScrollToSelectedItem) {
+        // // If there's a desired position to restore to, do so now.
+        // mRecyclerView.smoothScrollToPosition(mSelectedPosition);
+        // }
+        //
+        // mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mMovieAdapter.swapCursor(null);
+        // mMovieAdapter.swapCursor(null);
+    }
+
+    @Override
+    public void onMovieDataFetchFinished(List<Movie> movies) {
+        mMovieAdapter.setMovies(movies);
+        if (mSelectedPosition != RecyclerView.NO_POSITION && mShouldScrollToSelectedItem) {
+            mRecyclerView.smoothScrollToPosition(mSelectedPosition);
+        }
+
+        if (mSwipeRefreshLayout.isRefreshing()) {
+            Timber.d("isRefreshing. Canceling");
+            mSwipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     /**
      * A callback to notify activities of item selections.
      */
-    public interface OnMovieItemSelected {
+    public interface OnFavoriteItemSelected {
         /**
          * DetailFragmentCallback for when an item has been selected. It also allows the setting of
          * a sharedView to use in activity transitions (should be poster view)
          */
-        void onMovieItemSelected(Uri contentUri, View sharedView);
+        void onFavoriteItemSelected(Uri contentUri, View sharedView);
+    }
+
+    public interface OnMovieItemSelected {
+        void onMovieItemSelected(Movie movie);
     }
 }

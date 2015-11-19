@@ -19,7 +19,8 @@ public class DetailActivity extends UpBugFixAppCompatActivity {
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            arguments.putParcelable(DetailFragment.DETAIL_URI, getIntent().getData());
+            arguments.putParcelable(DetailFragment.DETAIL_MOVIE,
+                    getIntent().getParcelableExtra(DetailFragment.DETAIL_MOVIE));
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(arguments);
