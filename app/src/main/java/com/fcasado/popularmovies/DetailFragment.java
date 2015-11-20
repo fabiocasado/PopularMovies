@@ -271,8 +271,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onMovieExtrasFetchFinished(Pair<List<Trailer>, List<Review>> movieExtras) {
         mExtras = movieExtras;
-        updateTrailerlUi();
-        updateReviewUi();
+        if (getActivity() != null) {
+            updateTrailerlUi();
+            updateReviewUi();
+        }
     }
 
     private void updateTrailerlUi() {

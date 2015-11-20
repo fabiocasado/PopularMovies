@@ -163,7 +163,16 @@ public class MovieFragment extends Fragment
             mRecyclerView.smoothScrollToPosition(mSelectedPosition);
         }
 
-        // getLoaderManager().initLoader(FAVORITE_LOADER_ID, null, this);
+        if (mSortByValue.compareTo(getString(R.string.sort_favorite)) == 0) {
+            mSwipeRefreshLayout.setEnabled(false);
+            if (getLoaderManager().getLoader(FAVORITE_LOADER_ID) == null) {
+                getLoaderManager().initLoader(FAVORITE_LOADER_ID, null, this);
+            } else {
+                getLoaderManager().restartLoader(FAVORITE_LOADER_ID, null, this);
+            }
+        } else {
+            mSwipeRefreshLayout.setEnabled(true);
+        }
         super.onActivityCreated(savedInstanceState);
     }
 

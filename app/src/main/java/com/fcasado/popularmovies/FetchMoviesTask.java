@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Queries theMovieDB API and saves received data to database. Takes into account the "sort by" app
@@ -38,6 +39,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
     @Override
     protected List<Movie> doInBackground(Void... params) {
+        System.out.println("doInBackground");
         // Will contain the raw JSON response as a string.
         String movieJsonStr;
         List<Movie> movies = null;

@@ -1,6 +1,8 @@
 package com.fcasado.popularmovies;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 
 import com.fcasado.popularmovies.datatypes.Movie;
@@ -32,6 +34,15 @@ public class FetchMoviesFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        SharedPreferences preferences = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        String prefSortBy = preferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.sort_most_popular));
+
+        // We don't need to fetch data if current filter is favorite
+        if (prefSortBy.compareTo(getString(R.string.sort_favorite)) == 0)
+            return;
 
         if (!mIsTaskFinished && mTask == null) {
             refreshContent();

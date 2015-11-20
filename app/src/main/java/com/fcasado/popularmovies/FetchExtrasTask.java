@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Queries theMovieDB API and saves received data to database. Takes into account the "sort by" app
@@ -68,7 +69,6 @@ public class FetchExtrasTask extends AsyncTask<Movie, Void, Pair<List<Trailer>, 
             response = client.newCall(request).execute();
             String reviewDataJson = response.body().string();
 
-            System.out.println("Finished extras task");
             return Pair.create(getTrailerDataFromJson(trailerDataJson),
                     getReviewDataFromJson(reviewDataJson));
         } catch (IOException e) {
@@ -83,6 +83,7 @@ public class FetchExtrasTask extends AsyncTask<Movie, Void, Pair<List<Trailer>, 
     }
 
     private List<Trailer> getTrailerDataFromJson(String trailerJsonStr) {
+        System.out.println(trailerJsonStr);
         List<Trailer> trailers = new ArrayList<Trailer>();
         try {
             JSONObject resultsObject = new JSONObject(trailerJsonStr);
