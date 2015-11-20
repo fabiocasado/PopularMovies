@@ -1,25 +1,24 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.fcasado.popularmovies.sync.MovieSyncAdapter;
+import com.fcasado.popularmovies.datatypes.Movie;
 
-public class MainActivity extends AppCompatActivity implements MovieFragment.OnMovieItemSelected {
+public class MainActivity extends AppCompatActivity
+        implements MovieFragment.OnFavoriteItemSelected, MovieFragment.OnMovieItemSelected {
 
     private static final String TAG_MOVIE_DETAIL = "tagMovieDetail";
-    private static final String SELECTED_URI = "selectedUri";
+    private static final String SELECTED_MOVIE = "selectedMovie";
 
     private boolean mTwoPane;
-    private Uri mSelectedUri;
+    private Movie mSelectedMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
 
         // Restored saved values if available
         if (savedInstanceState != null) {
-            mSelectedUri = savedInstanceState.getParcelable(SELECTED_URI);
+            mSelectedMovie = savedInstanceState.getParcelable(SELECTED_MOVIE);
         }
 
         // If we are in large-screen layouts, we will use two pane mode to show two fragments at
@@ -51,9 +50,6 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
         if (movieFrag != null) {
             movieFrag.setShouldScrollToSelectedItem(mTwoPane);
         }
-
-        // Start first sync
-        MovieSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
@@ -76,28 +72,33 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putParcelable(SELECTED_URI, mSelectedUri);
+        outState.putParcelable(SELECTED_MOVIE, mSelectedMovie);
 
         super.onSaveInstanceState(outState);
     }
 
     @Override
-    public void onMovieItemSelected(Uri contentUri, View sharedView) {
+    public void onFavoriteItemSelected(Uri contentUri, View sharedView) {
+
+    }
+
+    @Override
+    public void onMovieItemSelected(Movie movie) {
         if (mTwoPane) {
             // If we are already showing the selected movie, we avoid adding new fragment with same
             // info
-            if (mSelectedUri != null && mSelectedUri.compareTo(contentUri) == 0) {
+            if (mSelectedMovie == movie) {
                 return;
             }
 
-            // Update selected uri and item position
-            mSelectedUri = contentUri;
+            // Update selected id
+            mSelectedMovie = movie;
 
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle args = new Bundle();
-            args.putParcelable(DetailFragment.DETAIL_URI, contentUri);
+            args.putParcelable(DetailFragment.DETAIL_MOVIE, mSelectedMovie);
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(args);
@@ -106,17 +107,12 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.OnM
             ft.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
             ft.replace(R.id.movie_detail_container, fragment, TAG_MOVIE_DETAIL).commit();
         } else {
-            Intent intent = new Intent(this, DetailActivity.class).setData(contentUri);
+            // Update selected movie
+            mSelectedMovie = movie;
 
-            if (sharedView != null) {
-                String transitionName = getString(R.string.transition_image);
-                Bundle bundle = ActivityOptionsCompat
-                        .makeSceneTransitionAnimation(this, sharedView, transitionName).toBundle();
-                startActivity(intent, bundle);
-            } else {
-                startActivity(intent);
-            }
+            Intent intent = new Intent(this, DetailActivity.class)
+                    .putExtra(DetailFragment.DETAIL_MOVIE, mSelectedMovie);
+            startActivity(intent);
         }
-
     }
 }

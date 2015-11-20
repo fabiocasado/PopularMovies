@@ -9,22 +9,12 @@ import com.facebook.stetho.dumpapp.DumperPlugin;
 
 import java.util.ArrayList;
 
-import timber.log.Timber;
-
 /**
  * Application instance to use in debug environment. Will activate Stetho and Timber for easier development.
  */
 public class PmApplication extends Application {
     public void onCreate() {
         super.onCreate();
-
-        // Initialize timber with DebugTree
-        Timber.plant(new Timber.DebugTree() {
-            @Override
-            protected String createStackElementTag(StackTraceElement element) {
-                return super.createStackElementTag(element) + ':' + element.getLineNumber();
-            }
-        });
 
         // Initialize Stetho only in debug environment
         final Context context = this;

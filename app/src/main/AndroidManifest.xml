@@ -43,32 +43,9 @@
         </activity>
 
         <provider
-            android:name=".data.MovieProvider"
-            android:authorities="@string/content_authority"
-            android:exported="false"
-            android:syncable="true" />
-
-        <!-- SyncAdapter's dummy authentication service -->
-        <service android:name=".sync.MovieAuthenticatorService">
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accounts.AccountAuthenticator"
-                android:resource="@xml/authenticator" />
-        </service>
-
-        <!-- The SyncAdapter service -->
-        <service
-            android:name=".sync.MovieSyncService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.content.SyncAdapter" />
-            </intent-filter>
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/syncadapter" />
-        </service>
+            android:name=".data.FavoriteProvider"
+            android:authorities="com.fcasado.popularmovies"
+            android:exported="false" />/>
     </application>
 
 </manifest>

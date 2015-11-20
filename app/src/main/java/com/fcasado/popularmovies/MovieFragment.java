@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -17,46 +18,42 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import com.fcasado.popularmovies.data.MovieContract;
-import com.fcasado.popularmovies.sync.MovieSyncAdapter;
+import com.fcasado.popularmovies.data.FavoriteContract;
+import com.fcasado.popularmovies.datatypes.Movie;
 import com.fcasado.popularmovies.utils.Utilities;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import timber.log.Timber;
 
 /**
  * Shows movie list ui. If we are in two pane mode, it automatically scrolls to selected movie on
- * screen rotation or similar events.
+ * screen rotation or similar events. It contains the {@link FetchMoviesFragment} to handle Movie
+ * API data query.
  */
-public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
-    static final int COL_MOVIE_ID = 0;
-    static final int COL_POSTER_PATH = 1;
-
-    // On gridView we only need movie poster.
-    private static final String[] MOVIE_COLUMNS = {
-            MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_POSTER_PATH
-    };
+public class MovieFragment extends Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor>, FetchMoviesTask.OnMovieDataFetchFinished {
 
     private static final String TAG_FETCH_MOVIE = "tagFetchMovie";
     private static final String SHOULD_SCROLL = "shouldScroll";
     private static final String SELECTED_POSITION = "selectedPosition";
-    private static final int MOVIE_LOADER_ID = 100;
+    private static final int FAVORITE_LOADER_ID = 100;
 
     @Bind(R.id.swipe_refresh_layout)
     SwipeRefreshLayout mSwipeRefreshLayout;
     @Bind(R.id.recyclerview)
     RecyclerView mRecyclerView;
     @Bind(R.id.recyclerview_empty_textview)
-    TextView mEmptyView;
+    View mEmptyView;
 
+    private FetchMoviesFragment mFetchMoviesFragment;
     private MovieAdapter mMovieAdapter;
 
-    private int mSelectedPosition = RecyclerView.NO_POSITION;
     private boolean mShouldScrollToSelectedItem;
+    private int mSelectedPosition = RecyclerView.NO_POSITION;
     private String mSortByValue;
 
     public MovieFragment() {
@@ -65,36 +62,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Restore saved values if available
-        if (savedInstanceState != null) {
-            mSelectedPosition = savedInstanceState.getInt(SELECTED_POSITION,
-                    GridView.INVALID_POSITION);
-        }
-
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
-
-        mMovieAdapter = new MovieAdapter(getActivity(), new MovieAdapter.MovieAdapterOnClickHandler() {
-            @Override
-            public void onClick(long movieId, MovieAdapter.MovieAdapterViewHolder viewHolder) {
-                ((OnMovieItemSelected) getActivity()).onMovieItemSelected(
-                        MovieContract.MovieEntry.buildMovieUri(movieId),
-                        viewHolder.posterView);
-
-                mSelectedPosition = viewHolder.getAdapterPosition();
-            }
-        }, mEmptyView);
-
-
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), getResources().getInteger(R.integer.grid_columns)));
-        mRecyclerView.setHasFixedSize(true); // Improves performance, since size of content won't change
-        mRecyclerView.setAdapter(mMovieAdapter);
-
-
-        SharedPreferences preferences = PreferenceManager
-                .getDefaultSharedPreferences(getActivity());
-        mSortByValue = preferences.getString(getString(R.string.pref_sort_key),
-                getString(R.string.pref_sort_default));
 
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -102,24 +71,30 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 if (!Utilities.isConnected(getActivity())) {
                     Utilities.presentOfflineDialog(getActivity());
 
-//                    // If we were trying to do a new fetch, but we are offline, we still delete old
-//                    // records,
-//                    // since some images and data may not be there, thus creating a weird/bad UX
-//                    int deleted = getActivity().getContentResolver()
-//                            .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-//                    Timber.d("No internet connection on refresh. Deleting old data to avoid bad UX. "
-//                            + deleted + " deleted");
-
                     mSwipeRefreshLayout.setRefreshing(false);
                     return;
                 }
 
                 // Reset current item since we are refreshing data
-                mSelectedPosition = GridView.INVALID_POSITION;
-                refreshContent();
+                mSelectedPosition = RecyclerView.NO_POSITION;
+                mFetchMoviesFragment.refreshContent();
                 mSwipeRefreshLayout.setRefreshing(true);
             }
         });
+
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
+                getResources().getInteger(R.integer.grid_columns)));
+
+        // Restore saved values if available
+        if (savedInstanceState != null) {
+            mSelectedPosition = savedInstanceState.getInt(SELECTED_POSITION,
+                    RecyclerView.NO_POSITION);
+        }
+
+        SharedPreferences preferences = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        mSortByValue = preferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_sort_default));
 
         return rootView;
     }
@@ -140,31 +115,55 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         if (mSortByValue.compareTo(prefSortBy) != 0) {
             mSortByValue = prefSortBy;
 
-            // If we were trying to do a new fetch with different sorting criteria, we delete old records
-            int deleted = getActivity().getContentResolver()
-                    .delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-            Timber.d("Sorting criteria changed. Deleting old data. " + deleted
-                    + " deleted");
+            // Clear old data
+            mFetchMoviesFragment.clearMovieData();
+            mMovieAdapter.setMovies(null);
 
-            refreshContent();
-            getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            // Get new values
+            // If we want favorites, we get new values from loader
+            if (mSortByValue.compareTo(getString(R.string.sort_favorite)) == 0) {
+                getLoaderManager().restartLoader(FAVORITE_LOADER_ID, null, this);
+                mSwipeRefreshLayout.setEnabled(false);
+            } else {
+                // If not, we get them from server
+                mFetchMoviesFragment.refreshContent();
+                mSwipeRefreshLayout.setEnabled(true);
+            }
         }
-    }
-
-    private void refreshContent() {
-        if (!Utilities.isConnected(getActivity())) {
-            Utilities.presentOfflineDialog(getActivity());
-
-
-            return;
-        }
-
-        MovieSyncAdapter.syncImmediately(getActivity());
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        getLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+        FragmentManager fm = getFragmentManager();
+
+        // Check to see if we have retained the movie data fetching fragment.
+        mFetchMoviesFragment = (FetchMoviesFragment) fm.findFragmentByTag(TAG_FETCH_MOVIE);
+
+        // If not retained (or first time running), we need to create it.
+        if (mFetchMoviesFragment == null) {
+            mFetchMoviesFragment = new FetchMoviesFragment();
+            // Tell it who it is working with.
+            mFetchMoviesFragment.setTargetFragment(this, 0);
+            fm.beginTransaction().add(mFetchMoviesFragment, TAG_FETCH_MOVIE).commit();
+        }
+
+        mFetchMoviesFragment.setTargetFragment(this, 0);
+        mFetchMoviesFragment.setOnMovieDataFetchListener(this);
+
+        mMovieAdapter = new MovieAdapter(getActivity(), mEmptyView, mFetchMoviesFragment.getMovieData(),
+                new MovieAdapter.MovieAdapterOnClickListener() {
+                    @Override
+                    public void onClick(Movie movie, int position) {
+                        ((MainActivity) getActivity()).onMovieItemSelected(movie);
+                        mSelectedPosition = position;
+                    }
+                });
+        mRecyclerView.setAdapter(mMovieAdapter);
+        if (mSelectedPosition != RecyclerView.NO_POSITION && mShouldScrollToSelectedItem) {
+            mRecyclerView.smoothScrollToPosition(mSelectedPosition);
+        }
+
+        // getLoaderManager().initLoader(FAVORITE_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -192,45 +191,74 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // This is called when a new Loader needs to be created. This
         // fragment only uses one loader, so we don't care about checking the id.
-
-        String sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC";
-        if (mSortByValue.equalsIgnoreCase(getString(R.string.sort_highest_rated))) {
-            sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC";
-        }
-
-        return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI, MOVIE_COLUMNS,
-                null, null, sortOrder);
+        return new CursorLoader(getActivity(), FavoriteContract.MovieEntry.CONTENT_URI,
+                null,
+                null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mMovieAdapter.swapCursor(data);
+        List<Movie> movies = new ArrayList<Movie>();
+        if (data != null && data.getCount() > 0) {
+            int idColumn = data.getColumnIndex(FavoriteContract.MovieEntry._ID);
+            int titleColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_TITLE);
+            int originalTitleColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
+            int overviewColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_OVERVIEW);
+            int posterPathColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_POSTER_PATH);
+            int releaseDateColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_RELEASE_DATE);
+            int popularityColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_POPULARITY);
+            int userRatingColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_USER_RATING);
+
+            while (data.moveToNext()) {
+                long id = data.getLong(idColumn);
+                String title = data.getString(titleColumn);
+                String originalTitle = data.getString(originalTitleColumn);
+                String overview = data.getString(overviewColumn);
+                String posterPath = data.getString(posterPathColumn);
+                String releaseDate = data.getString(releaseDateColumn);
+                double popularity = data.getDouble(popularityColumn);
+                double userRating = data.getDouble(userRatingColumn);
+
+                movies.add(new Movie(id, title, originalTitle, overview, posterPath, releaseDate, popularity, userRating));
+            }
+        }
+
+        mMovieAdapter.setMovies(movies);
         if (mSelectedPosition != ListView.INVALID_POSITION && mShouldScrollToSelectedItem) {
             // If there's a desired position to restore to, do so now.
             mRecyclerView.smoothScrollToPosition(mSelectedPosition);
         }
 
         mSwipeRefreshLayout.setRefreshing(false);
-
-        if (data.getCount() == 0) {
-            // If empty data, start new sync
-            MovieSyncAdapter.syncImmediately(getActivity());
-        }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mMovieAdapter.swapCursor(null);
+        mMovieAdapter.setMovies(null);
+    }
+
+    @Override
+    public void onMovieDataFetchFinished(List<Movie> movies) {
+        mMovieAdapter.setMovies(movies);
+        if (mSelectedPosition != RecyclerView.NO_POSITION && mShouldScrollToSelectedItem) {
+            mRecyclerView.smoothScrollToPosition(mSelectedPosition);
+        }
+
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     /**
      * A callback to notify activities of item selections.
      */
-    public interface OnMovieItemSelected {
+    public interface OnFavoriteItemSelected {
         /**
          * DetailFragmentCallback for when an item has been selected. It also allows the setting of
          * a sharedView to use in activity transitions (should be poster view)
          */
-        void onMovieItemSelected(Uri contentUri, View sharedView);
+        void onFavoriteItemSelected(Uri contentUri, View sharedView);
+    }
+
+    public interface OnMovieItemSelected {
+        void onMovieItemSelected(Movie movie);
     }
 }

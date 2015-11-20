@@ -5,6 +5,7 @@
     <string name="pref_sort_title">Ordenar por</string>
     <string name="sort_label_most_popular">Más populares</string>
     <string name="sort_label_highest_rated">Mejor valoradas</string>
+    <string name="sort_label_favorite">Favoritas</string>
 
 
     <string name="no_connection_message">La conexión a internet parece no funcionar. Por favor, revise su conexión.</string>

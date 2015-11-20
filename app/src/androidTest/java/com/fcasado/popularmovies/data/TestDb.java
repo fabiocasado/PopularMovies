@@ -27,7 +27,7 @@ public class TestDb extends AndroidTestCase {
 
     // Since we want each test to start with a clean slate
     private void deleteTheDatabase() {
-        mContext.deleteDatabase(MovieDbHelper.DATABASE_NAME);
+        mContext.deleteDatabase(FavoriteDbHelper.DATABASE_NAME);
     }
 
     /*
@@ -41,10 +41,10 @@ public class TestDb extends AndroidTestCase {
     public void testCreateDb() throws Throwable {
         // Store our tables names to test if they are all created correctly
         final HashSet<String> tableNameHashSet = new HashSet<String>();
-        tableNameHashSet.add(MovieContract.MovieEntry.TABLE_NAME);
+        tableNameHashSet.add(FavoriteContract.MovieEntry.TABLE_NAME);
 
-        mContext.deleteDatabase(MovieDbHelper.DATABASE_NAME);
-        SQLiteDatabase db = new MovieDbHelper(this.mContext).getWritableDatabase();
+        mContext.deleteDatabase(FavoriteDbHelper.DATABASE_NAME);
+        SQLiteDatabase db = new FavoriteDbHelper(this.mContext).getWritableDatabase();
         assertEquals(true, db.isOpen());
 
         // have we created the tables we want?
@@ -65,7 +65,7 @@ public class TestDb extends AndroidTestCase {
         c.close();
 
         // now, do our tables contain the correct columns?
-        c = db.rawQuery("PRAGMA table_info(" + MovieContract.MovieEntry.TABLE_NAME + ")", null);
+        c = db.rawQuery("PRAGMA table_info(" + FavoriteContract.MovieEntry.TABLE_NAME + ")", null);
 
         assertTrue(
                 "Error: This means that we were unable to query the database for table information.",
@@ -73,14 +73,14 @@ public class TestDb extends AndroidTestCase {
 
         // Build a HashSet of all of the column names we want to look for
         final HashSet<String> movieColumnHashSet = new HashSet<String>();
-        movieColumnHashSet.add(MovieContract.MovieEntry._ID);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_TITLE);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_OVERVIEW);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_POSTER_PATH);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_RELEASE_DATE);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_USER_RATING);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_POPULARITY);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry._ID);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry.COLUMN_TITLE);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry.COLUMN_OVERVIEW);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry.COLUMN_POSTER_PATH);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry.COLUMN_RELEASE_DATE);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry.COLUMN_USER_RATING);
+        movieColumnHashSet.add(FavoriteContract.MovieEntry.COLUMN_POPULARITY);
 
         int columnTitleIndex = c.getColumnIndex("name");
         do {
@@ -96,18 +96,18 @@ public class TestDb extends AndroidTestCase {
     }
 
     public void testMovieTable() {
-        MovieDbHelper dbHelper = new MovieDbHelper(mContext);
+        FavoriteDbHelper dbHelper = new FavoriteDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         // Create test movie values
         ContentValues movieValues = TestUtilities.createMovieValues();
 
         // Insert ContentValues into database and get a row ID back
-        long movieRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, movieValues);
+        long movieRowId = db.insert(FavoriteContract.MovieEntry.TABLE_NAME, null, movieValues);
         assertTrue(movieRowId != -1);
 
         // Query the database to check movie was inserted
-        Cursor movieCursor = db.query(MovieContract.MovieEntry.TABLE_NAME, null, null, null, null,
+        Cursor movieCursor = db.query(FavoriteContract.MovieEntry.TABLE_NAME, null, null, null, null,
                 null, null);
 
         // Check to see if we have any rows

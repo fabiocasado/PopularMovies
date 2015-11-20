@@ -37,14 +37,14 @@ public class TestUtilities extends AndroidTestCase {
 
     static ContentValues createMovieValues() {
         ContentValues movieValues = new ContentValues();
-        movieValues.put(MovieContract.MovieEntry._ID, "111111");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "Back to the Future");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, "Back to the Future");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW,
+        movieValues.put(FavoriteContract.MovieEntry._ID, "111111");
+        movieValues.put(FavoriteContract.MovieEntry.COLUMN_TITLE, "Back to the Future");
+        movieValues.put(FavoriteContract.MovieEntry.COLUMN_ORIGINAL_TITLE, "Back to the Future");
+        movieValues.put(FavoriteContract.MovieEntry.COLUMN_OVERVIEW,
                 "A young man is accidentally sent 30 years into the past in a time-traveling DeLorean invented by his friend, Dr. Emmett Brown, and must make sure his high-school-age parents unite in order to save his own existence.");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, "1985-07-03");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, "PosterPathDummyData");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_USER_RATING, "8.5");
+        movieValues.put(FavoriteContract.MovieEntry.COLUMN_RELEASE_DATE, "1985-07-03");
+        movieValues.put(FavoriteContract.MovieEntry.COLUMN_POSTER_PATH, "PosterPathDummyData");
+        movieValues.put(FavoriteContract.MovieEntry.COLUMN_USER_RATING, "8.5");
 
         return movieValues;
     }
