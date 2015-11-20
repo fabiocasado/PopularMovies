@@ -1,14 +1,15 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.fcasado.popularmovies.data.Movie;
+import com.fcasado.popularmovies.data.FavoriteContract;
 import com.fcasado.popularmovies.data.MovieAPI;
+import com.fcasado.popularmovies.datatypes.Movie;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -39,7 +40,18 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
     protected List<Movie> doInBackground(Void... params) {
         // Will contain the raw JSON response as a string.
         String movieJsonStr;
+        List<Movie> movies = null;
 
+        movies = getMoviesFromServer();
+        if (movies != null) {
+            updateMoviesFavoriteStatus(movies);
+        }
+
+        return movies;
+    }
+
+    private List<Movie> getMoviesFromServer() {
+        String movieJsonStr;
         try {
             // Initialize uri builder
             Uri.Builder uriBuilder = Uri.parse(MovieAPI.buildDiscoverMovieEndpointUri())
@@ -79,8 +91,22 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
             // attempting
             // to parse it.
         }
-
         return null;
+    }
+
+    private void updateMoviesFavoriteStatus(List<Movie> movies) {
+        Uri uri = FavoriteContract.MovieEntry.CONTENT_URI;
+        String[] projection = {FavoriteContract.MovieEntry._ID};
+        Cursor cursor = mContext.getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                Movie movie = new Movie(cursor.getLong(0));
+                int index = movies.indexOf(movie);
+                if (index != -1) {
+                    movies.get(index).setFavorite(true);
+                }
+            }
+        }
     }
 
     private List<Movie> getMovieDataFromJson(String movieJsonStr) {

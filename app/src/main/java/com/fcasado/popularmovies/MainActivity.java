@@ -9,7 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.fcasado.popularmovies.data.Movie;
+import com.fcasado.popularmovies.datatypes.Movie;
 
 public class MainActivity extends AppCompatActivity
         implements MovieFragment.OnFavoriteItemSelected, MovieFragment.OnMovieItemSelected {

@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,11 +17,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
+import android.widget.ListView;
 
-import com.fcasado.popularmovies.data.Movie;
-import com.fcasado.popularmovies.data.MovieContract;
+import com.fcasado.popularmovies.data.FavoriteContract;
+import com.fcasado.popularmovies.datatypes.Movie;
 import com.fcasado.popularmovies.utils.Utilities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
@@ -33,18 +36,11 @@ import butterknife.ButterKnife;
  */
 public class MovieFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor>, FetchMoviesTask.OnMovieDataFetchFinished {
-    // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
-    static final int COL_POSTER_PATH = 1;
-
-    // On gridView we only need movie poster.
-    private static final String[] MOVIE_COLUMNS = {
-            MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_POSTER_PATH
-    };
 
     private static final String TAG_FETCH_MOVIE = "tagFetchMovie";
     private static final String SHOULD_SCROLL = "shouldScroll";
     private static final String SELECTED_POSITION = "selectedPosition";
-    private static final int MOVIE_LOADER_ID = 100;
+    private static final int FAVORITE_LOADER_ID = 100;
 
     @Bind(R.id.swipe_refresh_layout)
     SwipeRefreshLayout mSwipeRefreshLayout;
@@ -124,8 +120,15 @@ public class MovieFragment extends Fragment
             mMovieAdapter.setMovies(null);
 
             // Get new values
-            mFetchMoviesFragment.refreshContent();
-            // getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            // If we want favorites, we get new values from loader
+            if (mSortByValue.compareTo(getString(R.string.sort_favorite)) == 0) {
+                getLoaderManager().restartLoader(FAVORITE_LOADER_ID, null, this);
+                mSwipeRefreshLayout.setEnabled(false);
+            } else {
+                // If not, we get them from server
+                mFetchMoviesFragment.refreshContent();
+                mSwipeRefreshLayout.setEnabled(true);
+            }
         }
     }
 
@@ -160,7 +163,7 @@ public class MovieFragment extends Fragment
             mRecyclerView.smoothScrollToPosition(mSelectedPosition);
         }
 
-        // getLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+        // getLoaderManager().initLoader(FAVORITE_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -186,34 +189,52 @@ public class MovieFragment extends Fragment
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // // This is called when a new Loader needs to be created. This
-        // // fragment only uses one loader, so we don't care about checking the id.
-        //
-        // String sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC";
-        // if (mSortByValue.equalsIgnoreCase(getString(R.string.sort_highest_rated))) {
-        // sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC";
-        // }
-        //
-        // return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI,
-        // MOVIE_COLUMNS,
-        // null, null, sortOrder);
-        return null;
+        // This is called when a new Loader needs to be created. This
+        // fragment only uses one loader, so we don't care about checking the id.
+        return new CursorLoader(getActivity(), FavoriteContract.MovieEntry.CONTENT_URI,
+                null,
+                null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        // mMovieAdapter.swapCursor(data);
-        // if (mSelectedPosition != ListView.INVALID_POSITION && mShouldScrollToSelectedItem) {
-        // // If there's a desired position to restore to, do so now.
-        // mRecyclerView.smoothScrollToPosition(mSelectedPosition);
-        // }
-        //
-        // mSwipeRefreshLayout.setRefreshing(false);
+        List<Movie> movies = new ArrayList<Movie>();
+        if (data != null && data.getCount() > 0) {
+            int idColumn = data.getColumnIndex(FavoriteContract.MovieEntry._ID);
+            int titleColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_TITLE);
+            int originalTitleColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
+            int overviewColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_OVERVIEW);
+            int posterPathColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_POSTER_PATH);
+            int releaseDateColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_RELEASE_DATE);
+            int popularityColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_POPULARITY);
+            int userRatingColumn = data.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_USER_RATING);
+
+            while (data.moveToNext()) {
+                long id = data.getLong(idColumn);
+                String title = data.getString(titleColumn);
+                String originalTitle = data.getString(originalTitleColumn);
+                String overview = data.getString(overviewColumn);
+                String posterPath = data.getString(posterPathColumn);
+                String releaseDate = data.getString(releaseDateColumn);
+                double popularity = data.getDouble(popularityColumn);
+                double userRating = data.getDouble(userRatingColumn);
+
+                movies.add(new Movie(id, title, originalTitle, overview, posterPath, releaseDate, popularity, userRating));
+            }
+        }
+
+        mMovieAdapter.setMovies(movies);
+        if (mSelectedPosition != ListView.INVALID_POSITION && mShouldScrollToSelectedItem) {
+            // If there's a desired position to restore to, do so now.
+            mRecyclerView.smoothScrollToPosition(mSelectedPosition);
+        }
+
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        // mMovieAdapter.swapCursor(null);
+        mMovieAdapter.setMovies(null);
     }
 
     @Override

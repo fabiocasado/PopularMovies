@@ -1,5 +1,4 @@
-
-package com.fcasado.popularmovies.data;
+package com.fcasado.popularmovies.datatypes;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -27,9 +26,14 @@ public class Movie implements Parcelable {
     private String mReleaseDate;
     private double mPopularity;
     private double mUserRating;
+    private boolean mIsFavorite;
+
+    public Movie(long id) {
+        mId = id;
+    }
 
     public Movie(long id, String title, String originalTitle, String overview, String posterPath,
-            String releaseDate, double popularity, double userRating) {
+                 String releaseDate, double popularity, double userRating) {
         mId = id;
         mTitle = title;
         mOriginalTitle = originalTitle;
@@ -38,6 +42,7 @@ public class Movie implements Parcelable {
         mReleaseDate = releaseDate;
         mPopularity = popularity;
         mUserRating = userRating;
+        mIsFavorite = false;
     }
 
     // Parcelling part
@@ -50,6 +55,7 @@ public class Movie implements Parcelable {
         this.mReleaseDate = in.readString();
         this.mPopularity = in.readDouble();
         this.mUserRating = in.readDouble();
+        this.mIsFavorite = false;
     }
 
     public long getId() {
@@ -84,6 +90,14 @@ public class Movie implements Parcelable {
         return mUserRating;
     }
 
+    public boolean isFavorite() {
+        return mIsFavorite;
+    }
+
+    public void setFavorite(Boolean isFavorite) {
+        mIsFavorite = isFavorite;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -99,5 +113,21 @@ public class Movie implements Parcelable {
         dest.writeString(mReleaseDate);
         dest.writeDouble(mPopularity);
         dest.writeDouble(mUserRating);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Movie movie = (Movie) o;
+
+        return mId == movie.mId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (mId ^ (mId >>> 32));
     }
 }

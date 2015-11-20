@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 /**
  * Defines table and column names for the movie database.
  */
-public class MovieContract {
+public class FavoriteContract {
     // Content authority for movie provider
     public static final String CONTENT_AUTHORITY = "com.fcasado.popularmovies";
 
@@ -75,6 +75,10 @@ public class MovieContract {
 
         // Youtube key
         public static final String COLUMN_KEY = "key";
+
+        public static Uri buildTrailerUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     /* Inner class that defines the table contents of the review table */
@@ -97,5 +101,9 @@ public class MovieContract {
 
         // Review content
         public static final String COLUMN_CONTENT = "content";
+
+        public static Uri buildReviewUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 }

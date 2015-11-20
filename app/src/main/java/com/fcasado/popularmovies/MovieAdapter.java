@@ -11,7 +11,7 @@ import android.widget.ImageView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-import com.fcasado.popularmovies.data.Movie;
+import com.fcasado.popularmovies.datatypes.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;

@@ -12,16 +12,20 @@ import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.fcasado.popularmovies.data.Movie;
-import com.fcasado.popularmovies.data.MovieContract;
-import com.fcasado.popularmovies.data.Review;
-import com.fcasado.popularmovies.data.Trailer;
+import com.fcasado.popularmovies.data.FavoriteContract;
+import com.fcasado.popularmovies.data.FavoriteQueryHandler;
+import com.fcasado.popularmovies.datatypes.Movie;
+import com.fcasado.popularmovies.datatypes.Review;
+import com.fcasado.popularmovies.datatypes.Trailer;
 import com.fcasado.popularmovies.views.EllipzisingTextView;
 import com.squareup.picasso.Picasso;
 
@@ -34,7 +38,7 @@ import butterknife.ButterKnife;
  * Shows movie details UI. Received movie URI in arguments.
  */
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-        FetchExtrasTask.OnMovieExtrasFetchFinished {
+        FetchExtrasTask.OnMovieExtrasFetchFinished, FavoriteQueryHandler.OnDeleteCompleteListener, FavoriteQueryHandler.OnInsertCompleteListener {
 
     static final String DETAIL_MOVIE = "DETAIL_MOVIE";
 
@@ -47,10 +51,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     // On details we only need movie poster.
     private static final String[] MOVIE_COLUMNS = {
-            MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_POSTER_PATH,
-            MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE,
-            MovieContract.MovieEntry.COLUMN_OVERVIEW, MovieContract.MovieEntry.COLUMN_USER_RATING,
-            MovieContract.MovieEntry.COLUMN_RELEASE_DATE
+            FavoriteContract.MovieEntry._ID, FavoriteContract.MovieEntry.COLUMN_POSTER_PATH,
+            FavoriteContract.MovieEntry.COLUMN_ORIGINAL_TITLE,
+            FavoriteContract.MovieEntry.COLUMN_OVERVIEW, FavoriteContract.MovieEntry.COLUMN_USER_RATING,
+            FavoriteContract.MovieEntry.COLUMN_RELEASE_DATE
     };
     private static final String TAG_FETCH_EXTRAS = "tagFetchExtras";
     private static final int DETAIL_LOADER = 0;
@@ -77,6 +81,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Bind(R.id.reviews_container)
     LinearLayout mReviewContainer;
 
+    private MenuItem mFavItem;
+    private FavoriteQueryHandler mFavoriteQueryHandler;
+
     private Movie mMovie;
     private FetchExtrasFragment mFetchExtrasFragment;
     private Pair<List<Trailer>, List<Review>> mExtras;
@@ -99,9 +106,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     };
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        System.out.println("detailfragment onCreateView movie: " + mMovie);
         Bundle arguments = getArguments();
         if (arguments != null) {
             mMovie = arguments.getParcelable(DetailFragment.DETAIL_MOVIE);
@@ -119,6 +131,48 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         updateDetailUi();
 
         return rootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.detail_fragment, menu);
+
+        mFavItem = menu.findItem(R.id.action_favorite);
+        mFavItem.setVisible(mMovie != null);
+
+        // For simplicity, and since its a short call, we are calling this here, but it should
+        // me moved to FavoriteQueryHandler or similar
+        if (mFavItem.isVisible()) {
+            Uri uri = FavoriteContract.MovieEntry.CONTENT_URI;
+            String[] projection = {FavoriteContract.MovieEntry._ID};
+            String selection = FavoriteContract.MovieEntry._ID + " =?";
+            String[] selectionArgs = {String.valueOf(mMovie.getId())};
+            Cursor favoriteCursor = getActivity().getContentResolver()
+                    .query(uri, projection, selection, selectionArgs, null);
+            if (favoriteCursor.getCount() > 0) {
+                mMovie.setFavorite(true);
+            }
+
+            mFavItem.setIcon(mMovie.isFavorite() ? R.drawable.ic_fav_on : R.drawable.ic_fav_off);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_favorite) {
+            if (mMovie.isFavorite()) {
+                mFavoriteQueryHandler.removeMovieFromFavorites(mMovie.getId());
+            } else {
+                mFavoriteQueryHandler.addMovieToFavorites(mMovie, mExtras);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private void updateDetailUi() {
@@ -145,7 +199,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        System.out.println("detailfragment onActivityCreated movie: " + mMovie);
+        mFavoriteQueryHandler = new FavoriteQueryHandler(getActivity().getContentResolver(), this, this);
+
         FragmentManager fm = getFragmentManager();
 
         // Check to see if we have retained the movie data fetching fragment.
@@ -295,5 +350,21 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             mReviewContainer.addView(reviewView);
         }
 
+    }
+
+    @Override
+    public void onDeleteComplete(long movieId) {
+        if (mMovie.getId() == movieId) {
+            mMovie.setFavorite(false);
+            mFavItem.setIcon(R.drawable.ic_fav_off);
+        }
+    }
+
+    @Override
+    public void onInsertComplete(long movieId) {
+        if (mMovie.getId() == movieId) {
+            mMovie.setFavorite(true);
+            mFavItem.setIcon(R.drawable.ic_fav_on);
+        }
     }
 }

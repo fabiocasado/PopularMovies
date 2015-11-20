@@ -1,5 +1,5 @@
 
-package com.fcasado.popularmovies.data;
+package com.fcasado.popularmovies.datatypes;
 
 /**
  * Created by fcasado on 19/11/2015.

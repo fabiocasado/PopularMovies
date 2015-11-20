@@ -4,10 +4,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Pair;
 
-import com.fcasado.popularmovies.data.Movie;
+import com.fcasado.popularmovies.datatypes.Movie;
 import com.fcasado.popularmovies.data.MovieAPI;
-import com.fcasado.popularmovies.data.Review;
-import com.fcasado.popularmovies.data.Trailer;
+import com.fcasado.popularmovies.datatypes.Review;
+import com.fcasado.popularmovies.datatypes.Trailer;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;

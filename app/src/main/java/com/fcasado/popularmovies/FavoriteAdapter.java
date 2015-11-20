@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.Context;
@@ -9,10 +8,11 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 
+import com.fcasado.popularmovies.data.FavoriteContract;
+import com.squareup.picasso.Picasso;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
-
-import com.squareup.picasso.Picasso;
 
 /**
  * Loads ui content from {@link Cursor} and implements ViewHolder pattern for performance. Loads
@@ -38,7 +38,7 @@ public class FavoriteAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         ViewHolder viewHolder = (ViewHolder) view.getTag();
 
-        String portraitPath = cursor.getString(MovieFragment.COL_POSTER_PATH);
+        String portraitPath = cursor.getString(cursor.getColumnIndex(FavoriteContract.MovieEntry.COLUMN_POSTER_PATH));
         if (portraitPath != null && portraitPath.length() > 0) {
             portraitPath = context.getString(R.string.movie_poster_uri).concat(portraitPath);
             Picasso.with(context).load(portraitPath).placeholder(R.drawable.ic_poster)

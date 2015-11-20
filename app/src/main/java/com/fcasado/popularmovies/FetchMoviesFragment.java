@@ -3,7 +3,7 @@ package com.fcasado.popularmovies;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-import com.fcasado.popularmovies.data.Movie;
+import com.fcasado.popularmovies.datatypes.Movie;
 import com.fcasado.popularmovies.utils.Utilities;
 
 import java.util.List;
