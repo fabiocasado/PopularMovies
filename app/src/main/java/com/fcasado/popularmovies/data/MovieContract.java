@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies.data;
 
 import android.content.ContentResolver;
@@ -16,8 +15,10 @@ public class MovieContract {
     // Base URI's for use to contact the content provider.
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
-    // Path (appended to base content URI) for querying movie data
+    // Path (appended to base content URI) for querying data
     public static final String PATH_MOVIE = "movie";
+    public static final String PATH_TRAILER = "trailer";
+    public static final String PATH_REVIEW = "review";
 
     /* Inner class that defines the table contents of the movie table */
     public static final class MovieEntry implements BaseColumns {
@@ -26,8 +27,6 @@ public class MovieContract {
                 .build();
 
         public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
-                + CONTENT_AUTHORITY + "/" + PATH_MOVIE;
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/"
                 + CONTENT_AUTHORITY + "/" + PATH_MOVIE;
 
         // Table name
@@ -57,5 +56,46 @@ public class MovieContract {
         public static Uri buildMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+    }
+
+    /* Inner class that defines the table contents of the trailer table */
+    public static final class TrailerEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER)
+                .build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                + CONTENT_AUTHORITY + "/" + PATH_TRAILER;
+
+        // Table name
+        public static final String TABLE_NAME = "trailer";
+
+        // Movie id
+        public static final String COLUMN_MOVIE_ID = "movieId";
+
+        // Youtube key
+        public static final String COLUMN_KEY = "key";
+    }
+
+    /* Inner class that defines the table contents of the review table */
+    public static final class ReviewEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW)
+                .build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                + CONTENT_AUTHORITY + "/" + PATH_REVIEW;
+
+        // Table name
+        public static final String TABLE_NAME = "review";
+
+        // Movie id
+        public static final String COLUMN_MOVIE_ID = "movieId";
+
+        // Review author
+        public static final String COLUMN_AUTHOR = "author";
+
+        // Review content
+        public static final String COLUMN_CONTENT = "content";
     }
 }

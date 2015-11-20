@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.os.Bundle;
@@ -52,6 +51,10 @@ public class FetchMoviesFragment extends Fragment
 
     public List<Movie> getMovieData() {
         return mMovies;
+    }
+
+    public void clearMovieData() {
+        mMovies = null;
     }
 
     /**

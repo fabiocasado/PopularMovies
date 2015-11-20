@@ -38,7 +38,7 @@
         </activity>
 
         <provider
-            android:name=".data.MovieProvider"
+            android:name=".data.FavoriteProvider"
             android:authorities="com.fcasado.popularmovies"
             android:exported="false" />
     </application>

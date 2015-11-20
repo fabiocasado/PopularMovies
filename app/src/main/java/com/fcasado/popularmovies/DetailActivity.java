@@ -1,9 +1,9 @@
-
 package com.fcasado.popularmovies;
 
 import android.os.Bundle;
 import android.view.MenuItem;
 
+import com.fcasado.popularmovies.data.Movie;
 import com.fcasado.popularmovies.utils.UpBugFixAppCompatActivity;
 
 /**

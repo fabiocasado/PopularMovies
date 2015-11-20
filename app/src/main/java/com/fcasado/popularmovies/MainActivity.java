@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.Intent;

@@ -14,9 +14,10 @@ import android.net.Uri;
  * Movie {@link ContentProvider}. Allows quering for whole table and also single records when
  * appending id.
  */
-public class MovieProvider extends ContentProvider {
+public class FavoriteProvider extends ContentProvider {
     private static final int MOVIE = 100;
-    private static final int MOVIE_WITH_ID = 101;
+    private static final int TRAILER = 200;
+    private static final int REVIEW = 300;
 
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -29,7 +30,6 @@ public class MovieProvider extends ContentProvider {
 
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, MovieContract.PATH_MOVIE, MOVIE);
-        matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_WITH_ID);
         return matcher;
     }
 
@@ -45,8 +45,6 @@ public class MovieProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
 
         switch (match) {
-            case MOVIE_WITH_ID:
-                return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
             case MOVIE:
                 return MovieContract.MovieEntry.CONTENT_TYPE;
             default:
@@ -64,16 +62,6 @@ public class MovieProvider extends ContentProvider {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.MovieEntry.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
-                break;
-            }
-            case MOVIE_WITH_ID: {
-                long id = ContentUris.parseId(uri);
-
-                retCursor = mOpenHelper.getReadableDatabase().query(
-                        MovieContract.MovieEntry.TABLE_NAME, projection,
-                        MovieContract.MovieEntry._ID + " = ?", new String[] {
-                                String.valueOf(id)
-                }, null, null, null);
                 break;
             }
 

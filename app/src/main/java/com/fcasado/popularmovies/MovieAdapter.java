@@ -23,19 +23,28 @@ import java.util.List;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHolder> {
 
     private Context mContext;
+    private View mEmptyView;
     private List<Movie> mMovies;
     private MovieAdapterOnClickListener mMovieAdapterOnClickListener;
 
-    public MovieAdapter(Context context, List<Movie> movies,
+    public MovieAdapter(Context context, View emptyView, List<Movie> movies,
             MovieAdapterOnClickListener onClickListener) {
         mContext = context;
-        mMovies = movies;
+        mEmptyView = emptyView;
         mMovieAdapterOnClickListener = onClickListener;
+
+        setMovies(movies);
     }
 
     public void setMovies(List<Movie> movies) {
         mMovies = movies;
         notifyDataSetChanged();
+
+        if (mMovies == null || mMovies.size() == 0) {
+            mEmptyView.setVisibility(View.VISIBLE);
+        } else {
+            mEmptyView.setVisibility(View.GONE);
+        }
     }
 
     @Override

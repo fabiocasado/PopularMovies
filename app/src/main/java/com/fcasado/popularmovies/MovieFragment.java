@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.SharedPreferences;
@@ -18,16 +17,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
-
 import com.fcasado.popularmovies.data.Movie;
 import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.utils.Utilities;
 
-import timber.log.Timber;
-
 import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 /**
  * Shows movie list ui. If we are in two pane mode, it automatically scrolls to selected movie on
@@ -53,6 +50,8 @@ public class MovieFragment extends Fragment
     SwipeRefreshLayout mSwipeRefreshLayout;
     @Bind(R.id.recyclerview)
     RecyclerView mRecyclerView;
+    @Bind(R.id.recyclerview_empty_textview)
+    View mEmptyView;
 
     private FetchMoviesFragment mFetchMoviesFragment;
     private MovieAdapter mMovieAdapter;
@@ -66,7 +65,7 @@ public class MovieFragment extends Fragment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
 
@@ -119,8 +118,13 @@ public class MovieFragment extends Fragment
                 getString(R.string.sort_most_popular));
         if (mSortByValue.compareTo(prefSortBy) != 0) {
             mSortByValue = prefSortBy;
-            mFetchMoviesFragment.refreshContent();
+
+            // Clear old data
+            mFetchMoviesFragment.clearMovieData();
             mMovieAdapter.setMovies(null);
+
+            // Get new values
+            mFetchMoviesFragment.refreshContent();
             // getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
         }
     }
@@ -134,15 +138,16 @@ public class MovieFragment extends Fragment
 
         // If not retained (or first time running), we need to create it.
         if (mFetchMoviesFragment == null) {
-            Timber.d("create fetch movie fragment");
             mFetchMoviesFragment = new FetchMoviesFragment();
-            mFetchMoviesFragment.setOnMovieDataFetchListener(this);
             // Tell it who it is working with.
             mFetchMoviesFragment.setTargetFragment(this, 0);
             fm.beginTransaction().add(mFetchMoviesFragment, TAG_FETCH_MOVIE).commit();
         }
 
-        mMovieAdapter = new MovieAdapter(getActivity(), mFetchMoviesFragment.getMovieData(),
+        mFetchMoviesFragment.setTargetFragment(this, 0);
+        mFetchMoviesFragment.setOnMovieDataFetchListener(this);
+
+        mMovieAdapter = new MovieAdapter(getActivity(), mEmptyView, mFetchMoviesFragment.getMovieData(),
                 new MovieAdapter.MovieAdapterOnClickListener() {
                     @Override
                     public void onClick(Movie movie, int position) {
@@ -172,9 +177,8 @@ public class MovieFragment extends Fragment
 
     /**
      * Tells the fragment to activate smooth scrolling to selected item on rotate/similar events.
-     * 
-     * @param shouldScrollToSelectedItem
-     *            whether the fragment should scroll to selected item or not
+     *
+     * @param shouldScrollToSelectedItem whether the fragment should scroll to selected item or not
      */
     public void setShouldScrollToSelectedItem(boolean shouldScrollToSelectedItem) {
         mShouldScrollToSelectedItem = shouldScrollToSelectedItem;
@@ -219,10 +223,7 @@ public class MovieFragment extends Fragment
             mRecyclerView.smoothScrollToPosition(mSelectedPosition);
         }
 
-        if (mSwipeRefreshLayout.isRefreshing()) {
-            Timber.d("isRefreshing. Canceling");
-            mSwipeRefreshLayout.setRefreshing(false);
-        }
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     /**

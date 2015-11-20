@@ -17,8 +17,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import timber.log.Timber;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -39,8 +37,6 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
     @Override
     protected List<Movie> doInBackground(Void... params) {
-        Timber.d("Starting work");
-
         // Will contain the raw JSON response as a string.
         String movieJsonStr;
 
@@ -79,7 +75,6 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
             return getMovieDataFromJson(movieJsonStr);
         } catch (IOException e) {
-            Timber.e(e, "Error");
             // If the code didn't successfully get the movie data, there's no point in
             // attempting
             // to parse it.
@@ -115,7 +110,6 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
                 movies.add(movie);
             }
 
-            Timber.d("FetchMoviesTask Complete.");
         } catch (JSONException e) {
             e.printStackTrace();
         }

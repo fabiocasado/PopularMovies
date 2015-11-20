@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.content.Intent;
@@ -19,9 +18,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
-
 import com.fcasado.popularmovies.data.Movie;
 import com.fcasado.popularmovies.data.MovieContract;
 import com.fcasado.popularmovies.data.Review;
@@ -30,6 +26,9 @@ import com.fcasado.popularmovies.views.EllipzisingTextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 /**
  * Shows movie details UI. Received movie URI in arguments.
@@ -101,8 +100,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-
+                             Bundle savedInstanceState) {
+        System.out.println("detailfragment onCreateView movie: " + mMovie);
         Bundle arguments = getArguments();
         if (arguments != null) {
             mMovie = arguments.getParcelable(DetailFragment.DETAIL_MOVIE);
@@ -146,6 +145,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        System.out.println("detailfragment onActivityCreated movie: " + mMovie);
         FragmentManager fm = getFragmentManager();
 
         // Check to see if we have retained the movie data fetching fragment.
@@ -153,17 +153,18 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         // If not retained (or first time running), we need to create it.
         if (mFetchExtrasFragment == null) {
-
-            Bundle bundle = new Bundle();
-            bundle.putParcelable(DETAIL_MOVIE, mMovie);
+            Bundle arguments = new Bundle();
+            arguments.putParcelable(DETAIL_MOVIE, mMovie);
 
             mFetchExtrasFragment = new FetchExtrasFragment();
-            mFetchExtrasFragment.setArguments(bundle);
-            mFetchExtrasFragment.setOnMovieExtasFetchListener(this);
-            // Tell it who it is working with.
-            mFetchExtrasFragment.setTargetFragment(this, 0);
+            mFetchExtrasFragment.setArguments(arguments);
             fm.beginTransaction().add(mFetchExtrasFragment, TAG_FETCH_EXTRAS).commit();
+        } else {
+            mFetchExtrasFragment.refreshContent(mMovie);
         }
+
+        mFetchExtrasFragment.setTargetFragment(this, 0);
+        mFetchExtrasFragment.setOnMovieExtasFetchListener(this);
 
         mExtras = mFetchExtrasFragment.getMovieExtras();
         updateTrailerlUi();

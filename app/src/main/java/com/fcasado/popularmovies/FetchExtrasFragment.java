@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.os.Bundle;
@@ -32,19 +31,19 @@ public class FetchExtrasFragment extends Fragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            mMovie = arguments.getParcelable(DetailFragment.DETAIL_MOVIE);
-        }
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        if (!mIsTaskFinished && mTask == null) {
-            refreshContent();
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            Movie movie = arguments.getParcelable(DetailFragment.DETAIL_MOVIE);
+            if (movie != null) {
+                refreshContent(movie);
+            }
+
         }
     }
 
@@ -58,15 +57,27 @@ public class FetchExtrasFragment extends Fragment
      */
     public void refreshContent() {
         if (!Utilities.isConnected(getActivity())) {
-            Utilities.presentOfflineDialog(getActivity());
-
             return;
         }
 
-        if (mTask == null) {
+        if (mTask != null) {
+            mTask.cancel(true);
+            mTask = null;
+        }
+
+        if (mTask == null && mMovie != null) {
             mIsTaskFinished = false;
             mTask = new FetchExtrasTask(this);
             mTask.execute(mMovie);
+        }
+    }
+
+    public void refreshContent(Movie movie) {
+        System.out.println("Had: " + mMovie + ", new: " + movie);
+        if (mMovie != movie) {
+            mMovie = movie;
+            mExtras = null;
+            refreshContent();
         }
     }
 

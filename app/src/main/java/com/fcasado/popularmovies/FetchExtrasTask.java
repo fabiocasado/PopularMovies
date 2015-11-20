@@ -1,4 +1,3 @@
-
 package com.fcasado.popularmovies;
 
 import android.net.Uri;
@@ -16,8 +15,6 @@ import com.squareup.okhttp.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import timber.log.Timber;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,14 +34,13 @@ public class FetchExtrasTask extends AsyncTask<Movie, Void, Pair<List<Trailer>, 
 
     @Override
     protected Pair<List<Trailer>, List<Review>> doInBackground(Movie... params) {
-        Timber.d("Starting work");
-
+        System.out.println("Start extras task");
         if (params.length == 0)
             return null;
 
         try {
             Movie movie = params[0];
-
+            System.out.println("Start task for movie: " + movie.getTitle());
             // First get trailer data json
             Uri.Builder uriBuilder = Uri.parse(MovieAPI.buildMovieTrailerEndpointUri(movie.getId()))
                     .buildUpon();
@@ -72,14 +68,16 @@ public class FetchExtrasTask extends AsyncTask<Movie, Void, Pair<List<Trailer>, 
             response = client.newCall(request).execute();
             String reviewDataJson = response.body().string();
 
+            System.out.println("Finished extras task");
             return Pair.create(getTrailerDataFromJson(trailerDataJson),
                     getReviewDataFromJson(reviewDataJson));
         } catch (IOException e) {
-            Timber.e(e, "Error");
             // If the code didn't successfully get the movie data, there's no point in
             // attempting
             // to parse it.
         }
+
+
 
         return null;
     }
@@ -145,6 +143,8 @@ public class FetchExtrasTask extends AsyncTask<Movie, Void, Pair<List<Trailer>, 
         if (mCallback != null) {
             mCallback.onMovieExtrasFetchFinished(movieExtras);
         }
+
+        mCallback = null;
     }
 
     public interface OnMovieExtrasFetchFinished {
