@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.fcasado.popularmovies.data.FavoriteContract;
 import com.fcasado.popularmovies.datatypes.Movie;
@@ -47,7 +48,7 @@ public class MovieFragment extends Fragment
     @Bind(R.id.recyclerview)
     RecyclerView mRecyclerView;
     @Bind(R.id.recyclerview_empty_textview)
-    View mEmptyView;
+    TextView mEmptyView;
 
     private FetchMoviesFragment mFetchMoviesFragment;
     private MovieAdapter mMovieAdapter;
@@ -126,6 +127,7 @@ public class MovieFragment extends Fragment
                 mSwipeRefreshLayout.setEnabled(false);
             } else {
                 // If not, we get them from server
+                getLoaderManager().destroyLoader(FAVORITE_LOADER_ID);
                 mFetchMoviesFragment.refreshContent();
                 mSwipeRefreshLayout.setEnabled(true);
             }
@@ -171,6 +173,7 @@ public class MovieFragment extends Fragment
                 getLoaderManager().restartLoader(FAVORITE_LOADER_ID, null, this);
             }
         } else {
+            getLoaderManager().destroyLoader(FAVORITE_LOADER_ID);
             mSwipeRefreshLayout.setEnabled(true);
         }
         super.onActivityCreated(savedInstanceState);
@@ -243,7 +246,7 @@ public class MovieFragment extends Fragment
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mMovieAdapter.setMovies(null);
+
     }
 
     @Override

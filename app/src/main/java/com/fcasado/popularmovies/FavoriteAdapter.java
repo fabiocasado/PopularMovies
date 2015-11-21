@@ -42,6 +42,7 @@ public class FavoriteAdapter extends CursorAdapter {
         if (portraitPath != null && portraitPath.length() > 0) {
             portraitPath = context.getString(R.string.movie_poster_uri).concat(portraitPath);
             Picasso.with(context).load(portraitPath).placeholder(R.drawable.ic_poster)
+                    .error(R.drawable.ic_poster_error)
                     .into(viewHolder.posterView);
         }
     }

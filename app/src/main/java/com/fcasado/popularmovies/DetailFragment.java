@@ -4,10 +4,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 import android.util.Pair;
@@ -29,6 +28,7 @@ import com.fcasado.popularmovies.datatypes.Trailer;
 import com.fcasado.popularmovies.views.EllipzisingTextView;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
@@ -37,27 +37,13 @@ import butterknife.ButterKnife;
 /**
  * Shows movie details UI. Received movie URI in arguments.
  */
-public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-        FetchExtrasTask.OnMovieExtrasFetchFinished, FavoriteQueryHandler.OnDeleteCompleteListener, FavoriteQueryHandler.OnInsertCompleteListener {
+public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieExtrasFetchFinished,
+        FavoriteQueryHandler.OnDeleteCompleteListener, FavoriteQueryHandler.OnInsertCompleteListener {
 
     static final String DETAIL_MOVIE = "DETAIL_MOVIE";
 
-    // Movie columns indices. Must be updated if MOVIE_COLUMNS change.
-    private static final int COL_POSTER_PATH = 1;
-    private static final int COL_ORIGINAL_TITLE = 2;
-    private static final int COL_OVERVIEW = 3;
-    private static final int COL_USER_RATING = 4;
-    private static final int COL_RELEASE_DATE = 5;
-
-    // On details we only need movie poster.
-    private static final String[] MOVIE_COLUMNS = {
-            FavoriteContract.MovieEntry._ID, FavoriteContract.MovieEntry.COLUMN_POSTER_PATH,
-            FavoriteContract.MovieEntry.COLUMN_ORIGINAL_TITLE,
-            FavoriteContract.MovieEntry.COLUMN_OVERVIEW, FavoriteContract.MovieEntry.COLUMN_USER_RATING,
-            FavoriteContract.MovieEntry.COLUMN_RELEASE_DATE
-    };
     private static final String TAG_FETCH_EXTRAS = "tagFetchExtras";
-    private static final int DETAIL_LOADER = 0;
+
     @Bind(R.id.help_textview)
     TextView mHelpView;
     @Bind(R.id.detail_card_view)
@@ -99,9 +85,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private View.OnClickListener mReviewViewOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            // Intent intent = new Intent(getActivity(), ReviewsActivity.class);
-            // intent.putExtra(ReviewsFragment.MOVIE_ID, ContentUris.parseId(mUri));
-            // startActivity(intent);
+            Intent intent = new Intent(getActivity(), ReviewActivity.class);
+            intent.putParcelableArrayListExtra(ReviewActivity.REVIEW_LIST_EXTRA, (ArrayList<Review>) mExtras.second);
+            startActivity(intent);
         }
     };
 
@@ -192,7 +178,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             if (posterPath != null && posterPath.length() > 0) {
                 posterPath = getString(R.string.movie_poster_uri).concat(posterPath);
                 Picasso.with(getActivity()).load(posterPath)
-                        .placeholder(R.drawable.ic_poster_details).noFade().into(mPosterView);
+                        .placeholder(R.drawable.ic_poster_details).error(R.drawable.ic_poster_error).noFade().into(mPosterView);
             }
         }
     }
@@ -225,48 +211,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         updateTrailerlUi();
         updateReviewUi();
 
-        // getLoaderManager().initLoader(DETAIL_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // if (null != mUri) {
-        // // Now create and return a CursorLoader that will take care of
-        // // creating a Cursor for the data being displayed.
-        // return new CursorLoader(getActivity(), mUri, MOVIE_COLUMNS, null, null, null);
-        // }
-        return null;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        // if (data != null && data.moveToFirst()) {
-        // // Hide help and show movie data
-        // if (mMovieDetailView.getVisibility() == View.INVISIBLE) {
-        // mHelpView.setVisibility(View.GONE);
-        // mMovieDetailView.setVisibility(View.VISIBLE);
-        // }
-        //
-        // // Read weather condition ID from cursor
-        // mTitleView.setText(data.getString(COL_ORIGINAL_TITLE));
-        // mReleaseDateView.setText(String.format("(%s)", data.getString(COL_RELEASE_DATE)));
-        // mUserRatingView.setText(String.format("%.1f/10", data.getFloat(COL_USER_RATING)));
-        // mOverviewView.setText(data.getString(COL_OVERVIEW));
-        //
-        // String portraitPath = data.getString(COL_POSTER_PATH);
-        // if (portraitPath != null && portraitPath.length() > 0) {
-        // portraitPath = getString(R.string.movie_poster_uri).concat(portraitPath);
-        // Picasso.with(getActivity()).load(portraitPath)
-        // .placeholder(R.drawable.ic_poster_details).noFade().into(mPosterView);
-        // }
-        // }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
 
     @Override
     public void onMovieExtrasFetchFinished(Pair<List<Trailer>, List<Review>> movieExtras) {
@@ -302,7 +249,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             // Remove divider if last
             if (i == trailers.size() - 1) {
                 View dividerView = trailerView.findViewById(R.id.trailer_divider);
-                dividerView.setVisibility(View.GONE);
+                dividerView.setVisibility(View.INVISIBLE);
             }
 
             trailerView.setTag("http://www.youtube.com/watch?v=".concat(trailer.getKey()));

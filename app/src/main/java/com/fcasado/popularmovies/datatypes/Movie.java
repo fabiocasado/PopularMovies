@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by fcasado on 19/11/2015.
+ * Datatype to contain basic movie data. Also has custom param to signal as favorite or not.
  */
 public class Movie implements Parcelable {
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
@@ -18,6 +18,7 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
     private long mId;
     private String mTitle;
     private String mOriginalTitle;

@@ -14,6 +14,8 @@
     <string name="no_connection_title">No internet connection</string>
 
     <string name="select_movie">Select movie to see details</string>
+    <string name="no_movie_data_available">No data to show. Pull down to query for data.</string>
+    <string name="no_favorite_movies">No favorite movies.</string>
 
     <!-- Account type (for sync-adapter authenticator) -->
     <!-- SyncAdapter related -->
@@ -27,6 +29,8 @@
     <string name="sort_favorite" translatable="false">favorite</string>
     <string name="movie_poster_uri" translatable="false">http://image.tmdb.org/t/p/w185/</string>
     <string name="transition_image" translatable="false">transition_image</string>
+    <string name="reviews_header">Reviews:</string>
+    <string name="trailers_header">Trailers:</string>
 
 
 </resources>
