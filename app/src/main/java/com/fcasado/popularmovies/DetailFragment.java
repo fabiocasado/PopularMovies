@@ -6,7 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.ShareActionProvider;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -42,6 +44,7 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
     static final String DETAIL_MOVIE = "DETAIL_MOVIE";
 
     private static final String TAG_FETCH_EXTRAS = "tagFetchExtras";
+    private static final String YOUTUBE_URL_FORMAT = "http://www.youtube.com/watch?v=%s";
 
     @Bind(R.id.help_textview)
     TextView mHelpView;
@@ -67,6 +70,8 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
     LinearLayout mReviewContainer;
 
     private MenuItem mFavItem;
+    private MenuItem mShareItem;
+    private ShareActionProvider mShareActionProvider;
     private FavoriteQueryHandler mFavoriteQueryHandler;
 
     private Movie mMovie;
@@ -127,6 +132,8 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
 
         mFavItem = menu.findItem(R.id.action_favorite);
         mFavItem.setVisible(mMovie != null);
+        mShareItem = menu.findItem(R.id.action_share);
+        updateShareMenuItem();
 
         // For simplicity, and since its a short call, we are calling this here, but it should
         // me moved to FavoriteQueryHandler or similar
@@ -146,6 +153,25 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
 
             mFavItem.setIcon(mMovie.isFavorite() ? R.drawable.ic_fav_on : R.drawable.ic_fav_off);
         }
+    }
+
+    private void updateShareMenuItem() {
+        if (mShareItem == null) return;
+        mShareItem.setVisible(mExtras != null && mExtras.first != null && mExtras.first.size() > 0);
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(mShareItem);
+
+        // If onLoadFinished happens before this, we can go ahead and set the share intent now.
+        if (mShareItem.isVisible()) {
+            mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        }
+    }
+
+    private Intent createShareTrailerIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.check_this_out).concat(String.format(YOUTUBE_URL_FORMAT, mExtras.first.get(0).getKey())));
+        return shareIntent;
     }
 
     @Override
@@ -254,10 +280,12 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
                 dividerView.setVisibility(View.INVISIBLE);
             }
 
-            trailerView.setTag("http://www.youtube.com/watch?v=".concat(trailer.getKey()));
+            trailerView.setTag(String.format(YOUTUBE_URL_FORMAT, trailer.getKey()));
             trailerView.setOnClickListener(mTrailerOnClickListener);
             mTrailerContainer.addView(trailerView);
         }
+
+        updateShareMenuItem();
     }
 
     private void updateReviewUi() {
