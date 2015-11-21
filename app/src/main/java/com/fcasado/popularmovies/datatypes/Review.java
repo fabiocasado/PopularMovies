@@ -5,7 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by fcasado on 19/11/2015.
+ * Datatype to easily represent movie review
  */
 public class Review implements Parcelable {
     public static final Creator<Review> CREATOR = new Creator<Review>() {

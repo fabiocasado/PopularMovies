@@ -2,7 +2,7 @@
 package com.fcasado.popularmovies.datatypes;
 
 /**
- * Created by fcasado on 19/11/2015.
+ * Datatype to easily represent movie Trailer
  */
 public class Trailer {
     private String mKey;

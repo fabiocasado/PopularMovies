@@ -259,17 +259,6 @@ public class MovieFragment extends Fragment
         mSwipeRefreshLayout.setRefreshing(false);
     }
 
-    /**
-     * A callback to notify activities of item selections.
-     */
-    public interface OnFavoriteItemSelected {
-        /**
-         * DetailFragmentCallback for when an item has been selected. It also allows the setting of
-         * a sharedView to use in activity transitions (should be poster view)
-         */
-        void onFavoriteItemSelected(Uri contentUri, View sharedView);
-    }
-
     public interface OnMovieItemSelected {
         void onMovieItemSelected(Movie movie);
     }

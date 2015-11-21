@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
@@ -71,7 +70,6 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
     private FavoriteQueryHandler mFavoriteQueryHandler;
 
     private Movie mMovie;
-    private FetchExtrasFragment mFetchExtrasFragment;
     private Pair<List<Trailer>, List<Review>> mExtras;
 
     private View.OnClickListener mTrailerOnClickListener = new View.OnClickListener() {
@@ -86,6 +84,7 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(getActivity(), ReviewActivity.class);
+            intent.putExtra(ReviewActivity.REVIEW_MOVIE_TITLE_EXTRA, mMovie.getTitle());
             intent.putParcelableArrayListExtra(ReviewActivity.REVIEW_LIST_EXTRA, (ArrayList<Review>) mExtras.second);
             startActivity(intent);
         }
@@ -138,8 +137,11 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
             String[] selectionArgs = {String.valueOf(mMovie.getId())};
             Cursor favoriteCursor = getActivity().getContentResolver()
                     .query(uri, projection, selection, selectionArgs, null);
-            if (favoriteCursor.getCount() > 0) {
-                mMovie.setFavorite(true);
+            if (favoriteCursor != null) {
+                if (favoriteCursor.getCount() > 0) {
+                    mMovie.setFavorite(true);
+                }
+                favoriteCursor.close();
             }
 
             mFavItem.setIcon(mMovie.isFavorite() ? R.drawable.ic_fav_on : R.drawable.ic_fav_off);
@@ -178,7 +180,7 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
             if (posterPath != null && posterPath.length() > 0) {
                 posterPath = getString(R.string.movie_poster_uri).concat(posterPath);
                 Picasso.with(getActivity()).load(posterPath)
-                        .placeholder(R.drawable.ic_poster_details).error(R.drawable.ic_poster_error).noFade().into(mPosterView);
+                        .placeholder(R.drawable.ic_poster_details).error(R.drawable.ic_poster_details_error).noFade().into(mPosterView);
             }
         }
     }
@@ -190,7 +192,7 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
         FragmentManager fm = getFragmentManager();
 
         // Check to see if we have retained the movie data fetching fragment.
-        mFetchExtrasFragment = (FetchExtrasFragment) fm.findFragmentByTag(TAG_FETCH_EXTRAS);
+        FetchExtrasFragment mFetchExtrasFragment = (FetchExtrasFragment) fm.findFragmentByTag(TAG_FETCH_EXTRAS);
 
         // If not retained (or first time running), we need to create it.
         if (mFetchExtrasFragment == null) {
@@ -244,7 +246,7 @@ public class DetailFragment extends Fragment implements FetchExtrasTask.OnMovieE
             View trailerView = LayoutInflater.from(getActivity()).inflate(R.layout.trailer,
                     mTrailerContainer, false);
             TextView titleView = (TextView) trailerView.findViewById(R.id.trailer_textview);
-            titleView.setText("Trailer " + i);
+            titleView.setText(String.format("%s %d", getActivity().getString(R.string.trailer), i));
 
             // Remove divider if last
             if (i == trailers.size() - 1) {

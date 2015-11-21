@@ -17,7 +17,7 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
- * Created by fcasado on 18/11/2015.
+ * AsyncQueryHandler to add/remove favorite movies outside main thread
  */
 public class FavoriteQueryHandler extends AsyncQueryHandler {
     private static final int INSERT_MOVIE_TOKEN = 100;

@@ -17,6 +17,7 @@ import butterknife.ButterKnife;
  * Review activity, so we can easily show long reviews using {@link android.support.v7.widget.RecyclerView}
  */
 public class ReviewActivity extends UpBugFixAppCompatActivity {
+    public static final String REVIEW_MOVIE_TITLE_EXTRA = " reviewMovieTitleExtra";
     public static final String REVIEW_LIST_EXTRA = " reviewListExtra";
     private static final String LOG_TAG = ReviewActivity.class.getSimpleName();
     @Bind(R.id.recyclerview)
@@ -32,6 +33,11 @@ public class ReviewActivity extends UpBugFixAppCompatActivity {
             Log.d(LOG_TAG, "No reviews to show. Should not happen. Finishing activity.");
             finish();
             return;
+        }
+
+        String actionBarTitle = getIntent().getStringExtra(REVIEW_MOVIE_TITLE_EXTRA);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(actionBarTitle);
         }
 
         ArrayList<Review> reviews = getIntent().getParcelableArrayListExtra(REVIEW_LIST_EXTRA);

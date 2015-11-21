@@ -1,18 +1,18 @@
 package com.fcasado.popularmovies;
 
 import android.content.Intent;
-import android.net.Uri;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.fcasado.popularmovies.datatypes.Movie;
 
 public class MainActivity extends AppCompatActivity
-        implements MovieFragment.OnFavoriteItemSelected, MovieFragment.OnMovieItemSelected {
+        implements MovieFragment.OnMovieItemSelected {
 
     private static final String TAG_MOVIE_DETAIL = "tagMovieDetail";
     private static final String SELECTED_MOVIE = "selectedMovie";
@@ -53,6 +53,28 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        String actionBarTitle = getString(R.string.sort_label_favorite);
+
+        SharedPreferences preferences = PreferenceManager
+                .getDefaultSharedPreferences(this);
+        String prefSortBy = preferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.sort_most_popular));
+
+        if (prefSortBy.compareTo(getString(R.string.sort_highest_rated)) == 0) {
+            actionBarTitle = getString(R.string.sort_label_highest_rated);
+        } else if (prefSortBy.compareTo(getString(R.string.sort_most_popular)) == 0) {
+            actionBarTitle = getString(R.string.sort_label_most_popular);
+        }
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(actionBarTitle);
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -75,11 +97,6 @@ public class MainActivity extends AppCompatActivity
         outState.putParcelable(SELECTED_MOVIE, mSelectedMovie);
 
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onFavoriteItemSelected(Uri contentUri, View sharedView) {
-
     }
 
     @Override

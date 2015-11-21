@@ -4,8 +4,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Pair;
 
-import com.fcasado.popularmovies.datatypes.Movie;
 import com.fcasado.popularmovies.data.MovieAPI;
+import com.fcasado.popularmovies.datatypes.Movie;
 import com.fcasado.popularmovies.datatypes.Review;
 import com.fcasado.popularmovies.datatypes.Trailer;
 import com.squareup.okhttp.OkHttpClient;
@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Queries theMovieDB API and saves received data to database. Takes into account the "sort by" app
@@ -35,13 +34,11 @@ public class FetchExtrasTask extends AsyncTask<Movie, Void, Pair<List<Trailer>, 
 
     @Override
     protected Pair<List<Trailer>, List<Review>> doInBackground(Movie... params) {
-        System.out.println("Start extras task");
         if (params.length == 0)
             return null;
 
         try {
             Movie movie = params[0];
-            System.out.println("Start task for movie: " + movie.getTitle());
             // First get trailer data json
             Uri.Builder uriBuilder = Uri.parse(MovieAPI.buildMovieTrailerEndpointUri(movie.getId()))
                     .buildUpon();
@@ -78,12 +75,10 @@ public class FetchExtrasTask extends AsyncTask<Movie, Void, Pair<List<Trailer>, 
         }
 
 
-
         return null;
     }
 
     private List<Trailer> getTrailerDataFromJson(String trailerJsonStr) {
-        System.out.println(trailerJsonStr);
         List<Trailer> trailers = new ArrayList<Trailer>();
         try {
             JSONObject resultsObject = new JSONObject(trailerJsonStr);

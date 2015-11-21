@@ -65,7 +65,7 @@ public class FetchExtrasFragment extends Fragment
             mTask = null;
         }
 
-        if (mTask == null && mMovie != null) {
+        if (mMovie != null) {
             mIsTaskFinished = false;
             mTask = new FetchExtrasTask(this);
             mTask.execute(mMovie);
@@ -73,7 +73,6 @@ public class FetchExtrasFragment extends Fragment
     }
 
     public void refreshContent(Movie movie) {
-        System.out.println("Had: " + mMovie + ", new: " + movie);
         if (mMovie != movie) {
             mMovie = movie;
             mExtras = null;
